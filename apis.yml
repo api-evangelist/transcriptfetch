@@ -1,0 +1,63 @@
+name: TranscriptFetch
+description: >-
+  Social video & audio transcript API for builders. Returns transcripts for YouTube, TikTok, and Instagram videos and
+  podcasts (Spotify, Apple Podcasts, RSS) as structured JSON ready for LLM pipelines, RAG, and agents. Supports
+  auto-transcription of audio when no caption track exists.
+url: https://raw.githubusercontent.com/api-evangelist/transcriptfetch/refs/heads/main/apis.yml
+created: '2026-09-09'
+modified: '2026-09-09'
+specificationVersion: '0.21'
+tags:
+  - transcripts
+  - speech-to-text
+  - captions
+  - youtube
+  - tiktok
+  - instagram
+  - podcasts
+  - mcp
+  - llms-txt
+  - openapi
+apis:
+  - name: TranscriptFetch REST API
+    description: >-
+      REST API (v2 current, v1 in deprecation) for fetching transcripts from social video and podcast sources, with
+      single, batch, search, playlist, and channel endpoints.
+    humanURL: https://transcriptfetch.com/docs/api-reference
+    baseURL: https://transcriptfetch.com
+    tags:
+      - transcripts
+      - speech-to-text
+      - captions
+      - youtube
+      - tiktok
+      - instagram
+      - podcasts
+      - mcp
+      - llms-txt
+      - openapi
+    properties:
+      - type: OpenAPI
+        url: https://transcriptfetch.com/api/v2/openapi.json
+      - type: OpenAPI
+        url: https://transcriptfetch.com/api/v1/openapi.json
+      - type: Documentation
+        url: https://transcriptfetch.com/docs
+      - type: Documentation
+        url: https://transcriptfetch.com/docs/api-reference
+      - type: LLMsTxt
+        url: https://transcriptfetch.com/llms.txt
+      - type: LLMsTxt
+        url: https://transcriptfetch.com/llms-full.txt
+      - type: MCPServer
+        url: https://transcriptfetch.com/mcp
+      - type: Documentation
+        url: https://transcriptfetch.com/docs/mcp
+maintainers:
+  - FN: TranscriptFetch
+    url: https://transcriptfetch.com
+generated:
+  by: apis.io/add
+  model: claude-opus-4-8
+  confidence: 95
+  at: '2026-09-09T01:35:33.001Z'
