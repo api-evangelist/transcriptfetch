@@ -1,8 +1,9 @@
 name: TranscriptFetch
 description: >-
-  Social video & audio transcript API for builders. Returns transcripts for YouTube, TikTok, and Instagram videos and
-  podcasts (Spotify, Apple Podcasts, RSS) as structured JSON ready for LLM pipelines, RAG, and agents. Supports
-  auto-transcription of audio when no caption track exists.
+  Social video & audio to text API for builders. Returns timestamped, structured JSON transcripts for YouTube, TikTok,
+  Instagram, Spotify, Apple Podcasts, and direct media files — captions when available, AI audio transcription as
+  fallback — plus YouTube channel/playlist/search discovery. Delivered via REST and a hosted MCP server for LLM
+  pipelines, RAG, and agents.
 url: https://raw.githubusercontent.com/api-evangelist/transcriptfetch/refs/heads/main/apis.yml
 created: '2026-09-09'
 modified: '2026-09-09'
@@ -18,11 +19,28 @@ tags:
   - mcp
   - llms-txt
   - openapi
+  - Transcription
+  - Speech-to-Text
+  - Video
+  - Podcasts
+  - AI/LLM
+  - RAG
+  - Agents
+  - MCP
+  - Developer Tools
+  - Media
+  - Content
+  - YouTube
+  - TikTok
+  - Instagram
+  - Spotify
+  - Apple Podcasts
 apis:
   - name: TranscriptFetch REST API
     description: >-
-      REST API (v2 current, v1 in deprecation) for fetching transcripts from social video and podcast sources, with
-      single, batch, search, playlist, and channel endpoints.
+      Hosted MCP server (streamable-http) exposing five tools: get_transcript, search_videos, list_channel_videos,
+      list_playlist_videos, get_credits. Auth via OAuth2 or bearer API key. Compatible with Claude, ChatGPT, Cursor,
+      Perplexity, Codex, and other MCP clients.
     humanURL: https://transcriptfetch.com/docs/api-reference
     baseURL: https://transcriptfetch.com
     tags:
@@ -36,6 +54,22 @@ apis:
       - mcp
       - llms-txt
       - openapi
+      - Transcription
+      - Speech-to-Text
+      - Video
+      - Podcasts
+      - AI/LLM
+      - RAG
+      - Agents
+      - MCP
+      - Developer Tools
+      - Media
+      - Content
+      - YouTube
+      - TikTok
+      - Instagram
+      - Spotify
+      - Apple Podcasts
     properties:
       - type: OpenAPI
         url: https://transcriptfetch.com/api/v2/openapi.json
@@ -53,6 +87,10 @@ apis:
         url: https://transcriptfetch.com/mcp
       - type: Documentation
         url: https://transcriptfetch.com/docs/mcp
+      - type: Documentation
+        url: https://transcriptfetch.com/docs/endpoints
+      - type: Documentation
+        url: https://transcriptfetch.com/claude-mcp-server
 maintainers:
   - FN: TranscriptFetch
     url: https://transcriptfetch.com
@@ -60,4 +98,4 @@ generated:
   by: apis.io/add
   model: claude-opus-4-8
   confidence: 95
-  at: '2026-09-09T01:35:33.001Z'
+  at: '2026-09-09T01:38:22.011Z'
