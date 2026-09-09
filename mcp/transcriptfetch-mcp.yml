@@ -1,0 +1,53 @@
+generated: '2026-09-09'
+method: searched
+source: >-
+  https://transcriptfetch.com/.well-known/mcp/server-card.json (HTTP 200, full tool
+  schemas), https://transcriptfetch.com/docs/mcp, live tools/list probe (HTTP 401 OAuth
+  challenge), official MCP Registry (registry.modelcontextprotocol.io,
+  com.transcriptfetch/youtube-transcripts, status active)
+name: TranscriptFetch MCP Server
+status: official
+deployment:
+  mode: remote
+  endpoint: https://transcriptfetch.com/mcp
+  auth: oauth
+  auth_note: >-
+    OAuth 2.0 (Clerk-run authorization server at clerk.transcriptfetch.com, dynamic
+    client registration, PKCE S256) OR a bearer API key (Authorization: Bearer
+    tf_live_...). RFC 9728 protected-resource metadata served at
+    /.well-known/oauth-protected-resource.
+  verified: probed
+  probe: >-
+    POST /mcp tools/list on 2026-09-09 returned 401 with a JSON-RPC error directing
+    unauthenticated callers to the public server card; the card itself (fetched, 200)
+    carries every tool's inputSchema and outputSchema, so schemas did not need
+    authenticated introspection.
+transport: streamable-http
+protocol_note: Supports protocol revision 2025-11-25 and session-id headers (changelog 2026-07-24); server card version 1.2.0.
+registry:
+  official_mcp_registry: com.transcriptfetch/youtube-transcripts
+  registry_status: active
+  also_listed: [Smithery]
+documentation: https://transcriptfetch.com/docs/mcp
+server_card: well-known/transcriptfetch-mcp-server-card.json
+tools:
+- name: get_transcript
+  description: Full transcript for a YouTube ID/URL, TikTok, Instagram, Spotify or Apple Podcasts episode, podcast RSS feed, or direct media file; ai_fallback transcribes audio when captions are missing.
+  annotations: {readOnlyHint: true, destructiveHint: false, idempotentHint: true}
+- name: search_videos
+  description: Search YouTube by keyword; returns titles, IDs, and URLs.
+  annotations: {readOnlyHint: true}
+- name: list_channel_videos
+  description: Recent videos for a YouTube handle/channel, TikTok or Instagram profile, Spotify or Apple Podcasts show, or RSS feed.
+  annotations: {readOnlyHint: true}
+- name: list_playlist_videos
+  description: Videos in a YouTube, TikTok or Spotify playlist ID or URL.
+  annotations: {readOnlyHint: true}
+- name: get_credits
+  description: The caller's remaining credit balance. The only free tool.
+  annotations: {readOnlyHint: true}
+pricing_note: >-
+  Every successful tool call costs 1 credit (audio transcription 1 credit per started
+  minute, billed on delivery); get_credits and failures are free. OAuth sign-in creates
+  an account with 100 free monthly credits.
+clients: [Claude, Claude Code, Claude Desktop, ChatGPT, Cursor, VS Code, Perplexity, Codex]

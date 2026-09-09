@@ -1,0 +1,44 @@
+generated: '2026-09-09'
+method: searched
+source: >-
+  registry.npmjs.org, pypi.org, https://transcriptfetch.com/llms.txt SDK section,
+  https://github.com/TranscriptFetch (org repos verified via api.github.com 2026-09-09)
+packages:
+- name: transcriptfetch-sdk
+  registry: pypi
+  language: Python
+  official: true
+  url: https://pypi.org/project/transcriptfetch-sdk/
+  source_code: https://github.com/TranscriptFetch/python-sdk
+  install: pip install transcriptfetch-sdk
+  version: 2.1.0
+  published: '2026-09-09'
+  docs: https://transcriptfetch.com/docs/python
+  note: Read from pypi.org/pypi/transcriptfetch-sdk/json (HTTP 200); homepage transcriptfetch.com.
+- name: transcriptfetch
+  registry: npm
+  language: JavaScript/TypeScript
+  official: true
+  url: https://www.npmjs.com/package/transcriptfetch
+  source_code: https://github.com/TranscriptFetch/node-sdk
+  install: npm install transcriptfetch
+  version: 2.1.0
+  published: '2026-09-09'
+  docs: https://transcriptfetch.com/docs/node
+  note: Read from registry.npmjs.org/transcriptfetch (HTTP 200); homepage transcriptfetch.com/docs/node.
+- name: n8n-nodes-transcriptfetch
+  registry: npm
+  language: TypeScript
+  official: true
+  url: https://www.npmjs.com/package/n8n-nodes-transcriptfetch
+  source_code: https://github.com/TranscriptFetch/n8n-nodes-transcriptfetch
+  install: n8n community node `n8n-nodes-transcriptfetch`
+  version: 0.3.0
+  published: '2026-08-28'
+  note: >-
+    Official n8n community node published with build provenance (changelog 2026-07-23);
+    read from registry.npmjs.org/n8n-nodes-transcriptfetch (HTTP 200).
+summary:
+  official_sdk_count: 3
+  languages: [Python, JavaScript/TypeScript]
+  currency: Python and Node SDKs both released v2.1.0 on 2026-09-09 (same day as this pass) — actively shipped, tracking the v2 API released 2026-09-03.

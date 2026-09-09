@@ -1,0 +1,57 @@
+generated: '2026-09-09'
+method: derived
+source: >-
+  well-known/transcriptfetch-mcp-server-card.json (public tool schemas, fetched 2026-09-09)
+  bound to openapi/transcriptfetch-api-v2-openapi.json operationIds; provider's own docs
+  state "The MCP server exposes every tool the REST API supports" (changelog 2026-07-24)
+surfaces:
+  openapi: openapi/transcriptfetch-api-v2-openapi.json
+  mcp:
+    url: https://transcriptfetch.com/mcp
+    gated: true
+    gate_note: tools/list requires OAuth or API key; schemas are public in the server card, so bindings below are schema-verified, not name-guessed.
+crosswalk:
+- tool: get_transcript
+  category: transcripts
+  rest: [fetchVideoTranscript]
+  binding: direct
+  confidence: high
+  note: >-
+    Tool input {video, ai_fallback} maps to POST /api/v2/transcripts/video {video, mode};
+    ai_fallback:true corresponds to mode:"audio" after a captions miss. Async jobs are
+    collected by calling the tool again with the same video (REST clients poll
+    getTranscriptJob instead).
+- tool: search_videos
+  category: discovery
+  rest: [searchVideos]
+  binding: direct
+  confidence: high
+- tool: list_channel_videos
+  category: discovery
+  rest: [fetchChannelVideos]
+  binding: direct
+  confidence: high
+- tool: list_playlist_videos
+  category: discovery
+  rest: [fetchPlaylistVideos]
+  binding: direct
+  confidence: high
+- tool: get_credits
+  category: account
+  rest: [me]
+  binding: direct
+  confidence: high
+  note: Free on both surfaces; GET /api/v2/me returns user_id + credits.
+mcp_only: []
+rest_only:
+- operationId: fetchTranscriptsBatch
+  reason: Batch (up to 500 videos) is REST-only; the MCP surface fetches one source per call.
+- operationId: getTranscriptJob
+  reason: Job polling is REST-only; the MCP flow re-calls get_transcript with the same video to collect a finished job.
+- operationId: healthCheck
+  reason: Public liveness probe, not exposed as a tool.
+coverage:
+  tools: 5
+  tools_bound: 5
+  rest_operations: 8
+  rest_bound: 5

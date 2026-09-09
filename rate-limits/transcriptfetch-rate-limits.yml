@@ -1,0 +1,44 @@
+generated: '2026-09-09'
+method: searched
+source: https://transcriptfetch.com/docs/rate-limits
+docs: https://transcriptfetch.com/docs/rate-limits
+limit_count: 5
+scope_note: >-
+  Limits are applied per API key (dashboard/session calls per user) over a sliding
+  60-second window; each key can carry its own custom limit, and higher limits are
+  available via support.
+limits:
+- scope: per-key
+  plan: Free
+  window: 60s sliding
+  limit: 10 requests/minute
+  source: https://transcriptfetch.com/pricing (rate-limit FAQ) and https://transcriptfetch.com/llms.txt
+- scope: per-key
+  plan: Basic
+  window: 60s sliding
+  limit: 60 requests/minute
+- scope: per-key
+  plan: Pro
+  window: 60s sliding
+  limit: 300 requests/minute
+- scope: per-key
+  plan: Mega
+  window: 60s sliding
+  limit: 900 requests/minute
+- scope: per-key
+  plan: Scale
+  window: 60s sliding
+  limit: 900 requests/minute (custom limits available; Enterprise offers custom rate limits)
+headers:
+- X-RateLimit-Limit
+- X-RateLimit-Remaining
+- X-RateLimit-Reset
+- Retry-After
+exhaustion:
+  status: 429
+  error_code: rate_limited
+  error_number: 2101
+  behavior: >-
+    Body is the standard error envelope; Retry-After carries seconds to wait. A 429
+    never consumes credits and always means the caller's own key limit — upstream
+    platform blocks answer 503 upstream_error (5001) instead.

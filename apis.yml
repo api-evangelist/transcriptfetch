@@ -38,9 +38,13 @@ tags:
 apis:
   - name: TranscriptFetch REST API
     description: >-
-      Hosted MCP server (streamable-http) exposing five tools: get_transcript, search_videos, list_channel_videos,
-      list_playlist_videos, get_credits. Auth via OAuth2 or bearer API key. Compatible with Claude, ChatGPT, Cursor,
-      Perplexity, Codex, and other MCP clients.
+      REST API (current version v2, path-prefixed) for fetching timestamped transcripts from YouTube, TikTok, Instagram,
+      Spotify, Apple Podcasts, podcast RSS feeds, and direct media files, with AI audio transcription when captions are
+      missing, plus YouTube channel/playlist/search discovery, batch up to 500, async jobs with polling or signed
+      callbacks, cursor pagination, Idempotency-Key replay, and credit-based billing where failures are free. Auth via
+      bearer API key (tf_live_...); a hosted MCP server at /mcp exposes the same surface as five tools over OAuth or
+      API key.
+    image: https://transcriptfetch.com/opengraph-image
     humanURL: https://transcriptfetch.com/docs/api-reference
     baseURL: https://transcriptfetch.com
     tags:
@@ -72,30 +76,121 @@ apis:
       - Apple Podcasts
     properties:
       - type: OpenAPI
+        url: openapi/transcriptfetch-api-v2-openapi.json
+      - type: OpenAPI
+        url: openapi/transcriptfetch-api-v1-openapi.json
+      - type: OpenAPI
         url: https://transcriptfetch.com/api/v2/openapi.json
       - type: OpenAPI
         url: https://transcriptfetch.com/api/v1/openapi.json
+      - type: Overlay
+        url: overlays/transcriptfetch-api-v2-overlay.yaml
       - type: Documentation
         url: https://transcriptfetch.com/docs
-      - type: Documentation
+      - type: APIReference
         url: https://transcriptfetch.com/docs/api-reference
+      - type: Documentation
+        url: https://transcriptfetch.com/docs/endpoints
       - type: LLMsTxt
         url: https://transcriptfetch.com/llms.txt
       - type: LLMsTxt
-        url: https://transcriptfetch.com/llms-full.txt
+        url: llms/transcriptfetch-llms.txt
       - type: MCPServer
         url: https://transcriptfetch.com/mcp
+      - type: MCPServer
+        url: mcp/transcriptfetch-mcp.yml
+      - type: ToolCrosswalk
+        url: mcp/transcriptfetch-tool-crosswalk.yml
       - type: Documentation
         url: https://transcriptfetch.com/docs/mcp
       - type: Documentation
-        url: https://transcriptfetch.com/docs/endpoints
-      - type: Documentation
         url: https://transcriptfetch.com/claude-mcp-server
+common:
+- type: Website
+  url: https://transcriptfetch.com
+- type: TrustCenter
+  url: security/transcriptfetch-trust-center.yml
+- type: VulnerabilityDisclosure
+  url: security/transcriptfetch-vulnerability-disclosure.yml
+- type: DomainSecurity
+  url: security/transcriptfetch-domain-security.yml
+- type: Authentication
+  url: authentication/transcriptfetch-authentication.yml
+- type: Security
+  url: security/transcriptfetch-vulnerability-disclosure.yml
+- type: SecurityTxt
+  url: well-known/transcriptfetch-security.txt
+- type: WellKnown
+  url: well-known/transcriptfetch-well-known.yml
+- type: Packages
+  url: packages/transcriptfetch-packages.yml
+- type: SDKs
+  url: packages/transcriptfetch-packages.yml
+- type: Conformance
+  url: conformance/transcriptfetch-conformance.yml
+- type: ErrorCatalog
+  url: errors/transcriptfetch-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/transcriptfetch-lifecycle.yml
+- type: StatusPage
+  url: https://status.transcriptfetch.com
+- type: Deprecation
+  url: https://transcriptfetch.com/docs/v1
+- type: OAuthScopes
+  url: scopes/transcriptfetch-scopes.yml
+- type: Conventions
+  url: conventions/transcriptfetch-conventions.yml
+- type: Idempotency
+  url: conventions/transcriptfetch-conventions.yml
+- type: ChangeLog
+  url: https://transcriptfetch.com/changelog
+- type: ChangeLog
+  url: changelog/transcriptfetch-changelog.yml
+- type: DataModel
+  url: data-model/transcriptfetch-data-model.yml
+- type: Webhooks
+  url: asyncapi/transcriptfetch-webhooks.yml
+- type: Plans
+  url: plans/transcriptfetch-plans-pricing.yml
+- type: RateLimits
+  url: rate-limits/transcriptfetch-rate-limits.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Pricing
+  url: https://transcriptfetch.com/pricing
+- type: Blog
+  url: https://transcriptfetch.com/blog
+- type: Support
+  url: https://transcriptfetch.com/contact
+- type: HelpCenter
+  url: https://transcriptfetch.com/help
+- type: Roadmap
+  url: https://transcriptfetch.com/roadmap
+- type: TermsOfService
+  url: https://transcriptfetch.com/legal
+- type: PrivacyPolicy
+  url: https://transcriptfetch.com/legal
+- type: SignUp
+  url: https://transcriptfetch.com/sign-up
+- type: Login
+  url: https://transcriptfetch.com/sign-in
+- type: GitHubOrganization
+  url: https://github.com/TranscriptFetch
+- type: Postman
+  url: https://www.postman.com/transcriptfetch
+- type: GettingStarted
+  url: https://transcriptfetch.com/docs
 maintainers:
   - FN: TranscriptFetch
+    email: support@transcriptfetch.com
     url: https://transcriptfetch.com
-generated:
+x-generated:
   by: apis.io/add
   model: claude-opus-4-8
   confidence: 95
   at: '2026-09-09T01:38:22.011Z'
+x-enrichment:
+  date: '2026-09-09'
+  status: enriched
+  artifacts_added: 33
+  pass: local-v3

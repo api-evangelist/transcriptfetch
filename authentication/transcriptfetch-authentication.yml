@@ -1,0 +1,34 @@
+generated: '2026-09-09'
+method: searched
+source: openapi/transcriptfetch-api-v1-openapi.json, openapi/transcriptfetch-api-v2-openapi.json
+docs: https://transcriptfetch.com/docs/api-reference
+summary:
+  types:
+  - http
+  - oauth2 (MCP surface)
+schemes:
+- name: bearerAuth
+  type: http
+  scheme: bearer
+  description: 'Send your API key as `Authorization: Bearer <key>`.'
+  key_prefix: tf_live_
+  sources:
+  - openapi/transcriptfetch-api-v1-openapi.json
+  - openapi/transcriptfetch-api-v2-openapi.json
+  notes:
+  - Keys are created in the dashboard; a SHA-256 hash is stored server-side, never the plaintext, so a key cannot be shown again after creation.
+  - Multiple keys per account, independently revocable (immediate), each with its own rate limit — rotation without downtime.
+  - Send keys only in the Authorization header, never a query string or browser JavaScript; the API deliberately sends no CORS headers.
+- name: mcp-oauth
+  type: oauth2
+  surface: MCP server only (https://transcriptfetch.com/mcp)
+  description: >-
+    OAuth 2.0 authorization-code with PKCE (S256) against the Clerk-run authorization
+    server at clerk.transcriptfetch.com, with dynamic client registration. RFC 9728
+    protected-resource metadata at /.well-known/oauth-protected-resource names the MCP
+    endpoint as the resource. The MCP server also accepts the same tf_live_ bearer keys.
+  metadata:
+  - well-known/transcriptfetch-oauth-protected-resource.json
+  - well-known/clerk-transcriptfetch-oauth-authorization-server.json
+public_endpoints:
+- GET /api/v2/health and /api/v2/health/deep need no key.

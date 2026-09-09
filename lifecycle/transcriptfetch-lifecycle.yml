@@ -1,0 +1,37 @@
+generated: '2026-09-09'
+method: searched
+source: https://transcriptfetch.com/docs/v1 (API versioning policy), https://transcriptfetch.com/trust, https://status.transcriptfetch.com
+versioning:
+  scheme: URL path prefix (/api/v1, /api/v2)
+  current: v2 (released 2026-09-03)
+  previous: v1 (still served indefinitely, shape frozen; spec frozen at /api/v1/openapi.json; every v1 response carries a Link header naming v2 as successor)
+  legacy: Older unversioned /api/transcripts routes still work.
+  breaking_change_policy: >-
+    Inside a version prefix nothing is removed, renamed, retyped, or made newly required,
+    and existing error codes keep their meaning and number. Breaking changes ship as a
+    new version prefix with the old one kept working. Additive changes (new endpoints,
+    optional fields, response fields, new error codes with new numbers) ship any time
+    without notice.
+deprecation:
+  policy: >-
+    At least 12 months' notice from announcement to shutdown of any retired version,
+    announced in the changelog, by email to accounts that called the affected endpoint in
+    the previous 90 days, and with a Deprecation response header (RFC 8594-style) on the
+    affected endpoints.
+  deprecation_header: true
+  currently_deprecated: []
+  note: Nothing is deprecated today (as of 2026-09-09).
+sla:
+  note: >-
+    SLA offered on the Scale plan and Enterprise; no public SLA document. Delivered-or-free
+    billing guarantee on every plan and a 30-day first-month refund.
+status_page:
+  url: https://status.transcriptfetch.com
+  status: 200
+  monitor: Independent third party (Better Stack); 99.804% uptime shown over the monitored window, incident history public.
+health_endpoints:
+- url: https://transcriptfetch.com/api/v2/health
+  kind: liveness (public, no key)
+- url: https://transcriptfetch.com/api/v2/health/deep
+  kind: deep check — performs a real transcript fetch, 200 only when actual segments come back (public, no key)
+sdk_versioning: Python and Node SDKs follow semver; breaking changes mean a major version.

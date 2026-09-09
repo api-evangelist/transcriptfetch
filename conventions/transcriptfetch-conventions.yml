@@ -1,0 +1,64 @@
+generated: '2026-09-09'
+method: searched
+source: >-
+  https://transcriptfetch.com/docs/pagination (Pagination & idempotency guide),
+  https://transcriptfetch.com/docs/rate-limits, https://transcriptfetch.com/docs/errors,
+  https://transcriptfetch.com/docs/v1, derived against
+  openapi/transcriptfetch-api-v2-openapi.json
+auth:
+  style: 'Bearer API key (Authorization: Bearer tf_live_...) on every endpoint except the public health probes; OAuth 2.0 (Clerk) on the MCP surface.'
+  cross_link: authentication/transcriptfetch-authentication.yml
+idempotency:
+  coverage: full
+  header: Idempotency-Key
+  key_format: Any unique string, up to 255 chars
+  retention: 24 hours
+  semantics: >-
+    Documented for billed requests generally (every transcript/listing POST). First
+    request runs and is charged; retries with the same key replay the stored response
+    with no extra charge and an Idempotent-Replayed:true header. Only 2xx responses are
+    replayed (a 5xx or fixed 402 re-runs, by design); a replayed transcription request
+    returns the stored 202, not the finished transcript. Reuse with a different body, or
+    while the first request is in flight, returns 409 idempotency_conflict (1201).
+  docs: https://transcriptfetch.com/docs/pagination
+pagination:
+  style: cursor
+  params: {limit: 1-50 (default 5), cursor: opaque token from next_cursor}
+  response_fields: {next_cursor: "null is the only terminator"}
+  cost: Each page is 1 credit; an empty page is free.
+  polling: >-
+    since_video_id trims a listing at the newest already-seen item and forces
+    next_cursor to null when the marker is found, making new-uploads polling free until
+    something new appears.
+request_id:
+  field: request_id
+  note: Present in every response envelope; support asks for it on persistent 500s.
+versioning:
+  style: URL path prefix (/api/v1, /api/v2)
+  cross_link: lifecycle/transcriptfetch-lifecycle.yml
+error_envelope:
+  shape: '{ ok: false, request_id, error: { code, number, message, docs, retry_with? | details? | issues? } }'
+  cross_link: errors/transcriptfetch-problem-types.yml
+success_envelope:
+  shape: '{ ok: true, request_id, data, usage }'
+  note: data.kind discriminates payloads (transcript, video_list, me, transcript_job); usage reports credits spent and balance.
+rate_limit_signaling:
+  headers: [X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After]
+  status: 429
+  cross_link: rate-limits/transcriptfetch-rate-limits.yml
+async_pattern: >-
+  Long audio transcription returns 202 with job_id + poll_url (GET
+  /api/v2/transcripts/jobs/{jobId}); short media may finish inline after a wait of up to
+  45 seconds; a callback_url can receive the finished result instead of polling.
+reversibility:
+  status: na
+  note: >-
+    Read-only retrieval API: every operation fetches transcripts or listings, validates
+    a key, or checks health. No resource is created, mutated, or deleted (transcription
+    jobs are fetch workflows, not stored mutable resources), so there is nothing to
+    reverse. The MCP server card annotates every tool readOnlyHint:true,
+    destructiveHint:false. Billing risk is bounded instead by delivered-or-free charging
+    and Idempotency-Key replay.
+dry_run:
+  status: na
+  note: No dry-run mode published; moot for a read-only surface where failures are free and get_credits//me balance checks cost nothing.

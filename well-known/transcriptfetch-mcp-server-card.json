@@ -1,0 +1,484 @@
+{
+  "name": "transcriptfetch",
+  "version": "1.2.0",
+  "title": "TranscriptFetch",
+  "description": "Video and podcast transcripts for AI: YouTube, TikTok, Instagram, Spotify, Apple Podcasts, RSS feeds, and direct media files, with AI transcription when captions are missing. Timestamped output for LLM pipelines, RAG, and agents.",
+  "instructions": "Fetch video and podcast transcripts (YouTube, TikTok, Instagram, Spotify, Apple Podcasts, RSS, or direct media file URLs) and discover YouTube videos. Use get_transcript for one source's full text, search_videos to find videos by keyword, list_channel_videos to enumerate a YouTube channel, TikTok or Instagram profile, Spotify or Apple Podcasts show, or RSS feed, and list_playlist_videos for a YouTube, TikTok or Spotify playlist. get_credits checks the remaining balance for free. Successful caption fetches and listings cost 1 credit; audio transcription costs 1 credit per started minute of audio and is billed only on delivery. Failures are free.",
+  "websiteUrl": "https://transcriptfetch.com",
+  "documentationUrl": "https://transcriptfetch.com/docs/mcp",
+  "transport": {
+    "type": "streamable-http",
+    "url": "https://transcriptfetch.com/mcp"
+  },
+  "authentication": {
+    "type": "oauth2",
+    "schemes": [
+      "oauth2",
+      "bearer"
+    ],
+    "bearerFormat": "TranscriptFetch API key (tf_live_…)"
+  },
+  "tools": [
+    {
+      "name": "get_transcript",
+      "description": "Fetch the full transcript for a video, podcast episode, or media file. Accepts a YouTube video ID or URL, TikTok and Instagram URLs, Spotify and Apple Podcasts episode URLs, podcast RSS feeds, and direct media file URLs. If no transcript comes back, the result says whether captions definitively do not exist (aiFallback.captionsUnavailable) and whether transcribing the audio would still work (aiFallback.available). When it does, call this tool again with ai_fallback: true.",
+      "annotations": {
+        "title": "Get video transcript",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "video": {
+            "type": "string",
+            "description": "Video ID or URL: YouTube (dQw4w9WgXcQ, youtu.be/…), TikTok, Instagram, Spotify or Apple Podcasts episode, podcast RSS feed, or a direct media file URL."
+          },
+          "ai_fallback": {
+            "type": "boolean",
+            "description": "Skip captions and transcribe the audio with AI instead. Use this only after a previous call reported aiFallback.available. Charged 1 credit per started minute of audio, minimum 1 credit, on delivery; short media may return inline, while longer work returns a processing result to collect with a later call."
+          }
+        },
+        "required": [
+          "video"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The full transcript text."
+          },
+          "segments": {
+            "type": "array",
+            "description": "Timestamped transcript segments.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "start": {
+                  "type": "number",
+                  "description": "Segment start time in seconds."
+                },
+                "duration": {
+                  "type": "number",
+                  "description": "Segment duration in seconds."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Segment text."
+                },
+                "speaker": {
+                  "type": "number",
+                  "description": "Best-effort speaker id when podcast diarization is available."
+                }
+              }
+            }
+          },
+          "outcome": {
+            "type": "string",
+            "description": "Fetch outcome (ok, no_transcript, processing, …)."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Structured failure reason when there is no transcript (no_captions, captions_disabled, age_restricted, upstream_error, …)."
+          },
+          "jobId": {
+            "type": "string",
+            "description": "AI-transcription job id, present when outcome is 'processing'."
+          },
+          "aiFallback": {
+            "type": "object",
+            "description": "Present when no transcript came back. Says what was established about captions and whether AI transcription can still be tried.",
+            "properties": {
+              "available": {
+                "type": "boolean",
+                "description": "True when calling this tool again with ai_fallback: true would actually start a transcription."
+              },
+              "captionsUnavailable": {
+                "type": "boolean",
+                "description": "True only when we reached the video and confirmed no caption track exists. False means we could not check, NOT that captions exist."
+              },
+              "unavailableReason": {
+                "type": "string",
+                "description": "Why AI transcription is not on the table: unsupported_input, no_speech_to_transcribe, content_inaccessible, retry_captions_first, or insufficient_credits."
+              },
+              "engaged": {
+                "type": "boolean",
+                "description": "True when AI transcription has already been started for this call."
+              },
+              "message": {
+                "type": "string",
+                "description": "One-sentence explanation."
+              }
+            }
+          },
+          "creditsSpent": {
+            "type": "number",
+            "description": "Credits charged for this call (0 on failure or for admins)."
+          },
+          "balance": {
+            "type": "number",
+            "description": "Remaining credit balance after this call, when known."
+          }
+        }
+      }
+    },
+    {
+      "name": "search_videos",
+      "description": "Search for videos or podcast episodes matching a query on YouTube (default), TikTok, Instagram, Spotify, Apple Podcasts, or the open podcast index (rss). Returns titles, ids, durations, and URLs that get_transcript accepts directly.",
+      "annotations": {
+        "title": "Search videos",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search keywords."
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "youtube",
+              "tiktok",
+              "instagram",
+              "spotify",
+              "apple",
+              "rss"
+            ],
+            "default": "youtube",
+            "description": "Where to search. Defaults to youtube. 'rss' searches the open podcast index and returns episode audio URLs."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Max results to return (1–50). Defaults to 5."
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "videos": {
+            "type": "array",
+            "description": "Matching videos with ids, titles, and URLs.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "videoId": {
+                  "type": "string",
+                  "description": "Video id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Video title."
+                },
+                "url": {
+                  "type": "string",
+                  "description": "Watch URL."
+                },
+                "duration": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "description": "Video duration in seconds, when known."
+                },
+                "channel": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Channel, creator handle, or show name, when known."
+                },
+                "publishedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Publish time (ISO 8601), when known."
+                },
+                "stats": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "Engagement counts where the source exposes them (TikTok and Instagram plays).",
+                  "properties": {
+                    "plays": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "count": {
+            "type": "number",
+            "description": "Number of videos returned."
+          },
+          "creditsSpent": {
+            "type": "number",
+            "description": "Credits charged for this call (0 on failure or for admins)."
+          },
+          "balance": {
+            "type": "number",
+            "description": "Remaining credit balance after this call, when known."
+          }
+        }
+      }
+    },
+    {
+      "name": "list_channel_videos",
+      "description": "List a creator's or show's recent items, newest first. Accepts a YouTube channel (@handle, UC… id, or URL), a TikTok profile URL (tiktok.com/@user), an Instagram profile URL, a Spotify show URL, an Apple Podcasts show URL, or any podcast RSS/Atom feed URL. Every row's url can be passed straight to get_transcript.",
+      "annotations": {
+        "title": "List channel videos",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "description": "YouTube handle/ID/URL, TikTok or Instagram profile URL, Spotify or Apple Podcasts show URL, or a podcast feed URL."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Max results to return (1–50). Defaults to 5."
+          }
+        },
+        "required": [
+          "channel"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "videos": {
+            "type": "array",
+            "description": "Matching videos with ids, titles, and URLs.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "videoId": {
+                  "type": "string",
+                  "description": "Video id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Video title."
+                },
+                "url": {
+                  "type": "string",
+                  "description": "Watch URL."
+                },
+                "duration": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "description": "Video duration in seconds, when known."
+                },
+                "channel": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Channel, creator handle, or show name, when known."
+                },
+                "publishedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Publish time (ISO 8601), when known."
+                },
+                "stats": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "Engagement counts where the source exposes them (TikTok and Instagram plays).",
+                  "properties": {
+                    "plays": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "count": {
+            "type": "number",
+            "description": "Number of videos returned."
+          },
+          "creditsSpent": {
+            "type": "number",
+            "description": "Credits charged for this call (0 on failure or for admins)."
+          },
+          "balance": {
+            "type": "number",
+            "description": "Remaining credit balance after this call, when known."
+          }
+        }
+      }
+    },
+    {
+      "name": "list_playlist_videos",
+      "description": "List the items in a playlist. Accepts a YouTube playlist ID or URL, a TikTok playlist URL (tiktok.com/@user/playlist/name-id), or a Spotify playlist URL. Every row's url can be passed straight to get_transcript.",
+      "annotations": {
+        "title": "List playlist videos",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "playlist": {
+            "type": "string",
+            "description": "YouTube playlist ID or URL, TikTok playlist URL, or Spotify playlist URL."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Max results to return (1–50). Defaults to 5."
+          }
+        },
+        "required": [
+          "playlist"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "videos": {
+            "type": "array",
+            "description": "Matching videos with ids, titles, and URLs.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "videoId": {
+                  "type": "string",
+                  "description": "Video id."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Video title."
+                },
+                "url": {
+                  "type": "string",
+                  "description": "Watch URL."
+                },
+                "duration": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "description": "Video duration in seconds, when known."
+                },
+                "channel": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Channel, creator handle, or show name, when known."
+                },
+                "publishedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Publish time (ISO 8601), when known."
+                },
+                "stats": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "description": "Engagement counts where the source exposes them (TikTok and Instagram plays).",
+                  "properties": {
+                    "plays": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "count": {
+            "type": "number",
+            "description": "Number of videos returned."
+          },
+          "creditsSpent": {
+            "type": "number",
+            "description": "Credits charged for this call (0 on failure or for admins)."
+          },
+          "balance": {
+            "type": "number",
+            "description": "Remaining credit balance after this call, when known."
+          }
+        }
+      }
+    },
+    {
+      "name": "get_credits",
+      "description": "Check the caller's remaining credit balance. Free; costs no credits.",
+      "annotations": {
+        "title": "Check credit balance",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "credits": {
+            "type": "number",
+            "description": "Remaining credit balance."
+          }
+        },
+        "required": [
+          "credits"
+        ]
+      }
+    }
+  ]
+}

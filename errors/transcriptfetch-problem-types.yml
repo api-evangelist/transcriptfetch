@@ -1,0 +1,49 @@
+generated: '2026-09-09'
+method: searched
+source: https://transcriptfetch.com/docs/errors (error reference) enriched against openapi/transcriptfetch-api-v2-openapi.json ErrorBlock schema
+format: custom-envelope
+envelope: >-
+  Every non-2xx response carries { ok: false, request_id, error: { code, number, message,
+  docs, retry_with? | details? | issues? } }. Not RFC 9457 problem+json; codes are stable
+  strings, numbers are stable integers whose thousands digit is the family (1 request,
+  2 account, 3 input, 4 content, 5 transient, 9 ours). 5xxx means retry with backoff.
+  Per-code docs URLs resolve at /docs/errors/<code> and /docs/errors/<number>.
+problem_types:
+- {code: invalid_request, number: 1001, status: 400, title: Body failed validation, remediation: error.issues names each field and constraint.}
+- {code: invalid_cursor, number: 1002, status: 400, title: Pagination cursor malformed or expired, remediation: Restart the listing without a cursor.}
+- {code: unauthorized, number: 1101, status: 401, title: Missing or invalid API key}
+- {code: idempotency_conflict, number: 1201, status: 409, title: Idempotency-Key reused with a different body or still in flight}
+- {code: not_found, number: 1301, status: 404, title: Unknown job id or job owned by another account}
+- {code: insufficient_credits, number: 2001, status: 402, title: Not enough credits, remediation: Nothing was charged; retry once credits are available.}
+- {code: batch_too_large, number: 2002, status: 400, title: Batch exceeds plan cap, remediation: error.details carries the cap and what was sent.}
+- {code: rate_limited, number: 2101, status: 429, title: Per-plan request rate exceeded, remediation: Wait Retry-After seconds.}
+- {code: unsupported_platform, number: 3001, status: 422, title: Input not on a supported platform}
+- {code: endpoint_platform_mismatch, number: 3002, status: 422, title: Platform supported but not by this endpoint, remediation: error.retry_with names the endpoint to use.}
+- {code: podcast_feed_not_found, number: 3003, status: 422, title: Podcast link not matched to a public RSS episode}
+- {code: audio_ineligible, number: 3004, status: 422, title: Audio transcription cannot run on this input}
+- {code: invalid_input, number: 3005, status: 422, title: Invalid video/URL/ID}
+- {code: audio_too_long, number: 3006, status: 422, title: Media longer than the account can transcribe in one request}
+- {code: drm_protected, number: 3007, status: 422, title: Source is DRM-protected}
+- {code: private, number: 4001, status: 422, title: Video is private}
+- {code: unavailable, number: 4002, status: 422, title: Video deleted, removed, terminated, or region-blocked}
+- {code: members_only, number: 4003, status: 422, title: Members-only video}
+- {code: age_restricted, number: 4004, status: 422, title: Age-restricted video}
+- {code: region_blocked, number: 4005, status: 422, title: Geo-restricted for the fetch region}
+- {code: live_stream, number: 4101, status: 422, title: Live broadcast in progress, remediation: Retry only after a recording is published.}
+- {code: was_live, number: 4102, status: 422, title: Past live broadcast with no caption track}
+- {code: no_captions, number: 4103, status: 422, title: No caption track available, remediation: error.retry_with says when AI audio transcription would work.}
+- {code: captions_disabled, number: 4104, status: 422, title: Captions disabled by the uploader}
+- {code: no_speech, number: 4105, status: 422, title: No detectable speech in the audio}
+- {code: no_audio_stream, number: 4106, status: 422, title: Media carried no audio stream, remediation: Permanent — retrying re-runs the same conversion on the same bytes.}
+- {code: upstream_error, number: 5001, status: 503, title: Upstream fetch failed server-side, remediation: Transient; retry with backoff.}
+- {code: timeout, number: 5002, status: 503, title: Upstream fetch timed out, remediation: Transient; retry with backoff.}
+- {code: connection, number: 5003, status: 503, title: Could not connect to the upstream service, remediation: Transient; retry with backoff.}
+- {code: proxy_unavailable, number: 5004, status: 503, title: Upstream egress proxy refused the tunnel, remediation: NOT retryable; wait for the provider to resolve.}
+- {code: parse_error, number: 5005, status: 503, title: Upstream response could not be parsed, remediation: Retry with backoff.}
+- {code: upstream_unavailable, number: 5101, status: 502, title: Transcript service or podcast feed unreachable, remediation: Safe to retry.}
+- {code: internal_error, number: 9001, status: 500, title: Unexpected server error, remediation: Retry with backoff; if persistent send support the request_id.}
+- {code: unknown, number: 9002, status: 503, title: Fetch failed for an unspecified reason, remediation: Retry with backoff.}
+batch_outcomes:
+- {outcome: ok, charged: 1 credit, meaning: Transcript or video list returned successfully.}
+- {outcome: processing, charged: free on this call, meaning: Audio transcription started; entry carries job_id and poll_url, billed on delivery.}
+- {outcome: error, charged: free, meaning: Fetch failed; entry carries the same error block as a request-level failure.}

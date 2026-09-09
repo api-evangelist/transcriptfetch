@@ -1,0 +1,12 @@
+# TranscriptFetch security contact
+# https://securitytxt.org/ / RFC 9116
+#
+# Expires must stay in the future: an expired security.txt is treated as stale by
+# scanners. Refresh it (and the date on /security) at least annually.
+
+Contact: mailto:support@transcriptfetch.com
+Contact: https://transcriptfetch.com/contact
+Policy: https://transcriptfetch.com/security
+Preferred-Languages: en
+Canonical: https://transcriptfetch.com/.well-known/security.txt
+Expires: 2027-07-27T00:00:00.000Z

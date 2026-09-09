@@ -1,0 +1,48 @@
+generated: '2026-09-09'
+method: probed
+source: live probes of transcriptfetch.com and clerk.transcriptfetch.com (auth server named in oauth-protected-resource authorization_servers), 2026-09-09
+note: >-
+  Five real documents served on the primary host, including a public MCP server card at
+  /.well-known/mcp/server-card.json with full tool input/output schemas. OAuth
+  authorization-server metadata is served both on the primary host and on the Clerk-run
+  auth host clerk.transcriptfetch.com (issuer). agent-card.json / agent.json 404 —
+  no A2A surface. api-catalog and ai-plugin.json 404 (the 404 bodies are the site's
+  HTML not-found page, recorded as misses).
+hosts:
+- host: transcriptfetch.com
+  documents:
+  - path: /.well-known/security.txt
+    status: 200
+    file: well-known/transcriptfetch-security.txt
+  - path: /.well-known/openid-configuration
+    status: 200
+    file: well-known/transcriptfetch-openid-configuration.json
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    file: well-known/transcriptfetch-oauth-authorization-server.json
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    file: well-known/transcriptfetch-oauth-protected-resource.json
+  - path: /.well-known/mcp/server-card.json
+    status: 200
+    file: well-known/transcriptfetch-mcp-server-card.json
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/agent-card.json
+    status: 404
+  - path: /.well-known/agent.json
+    status: 404
+- host: clerk.transcriptfetch.com
+  documents:
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    file: well-known/clerk-transcriptfetch-oauth-authorization-server.json
+  - path: /.well-known/openid-configuration
+    status: 200
+    file: well-known/clerk-transcriptfetch-openid-configuration.json
+  - path: /.well-known/jwks.json
+    status: 200
+  - path: /.well-known/security.txt
+    status: 404

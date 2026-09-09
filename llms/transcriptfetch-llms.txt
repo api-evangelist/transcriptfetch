@@ -1,0 +1,62 @@
+# TranscriptFetch
+
+> TranscriptFetch is a video and podcast transcript API. It returns transcripts for YouTube, TikTok, and Instagram videos and podcasts (Spotify, Apple Podcasts, or an RSS feed), as structured JSON ready for LLM pipelines, RAG, and agents.
+
+TranscriptFetch is built for developers and AI teams who need reliable transcripts without running their own scrapers or proxy pools. Core facts an agent should know:
+
+- The current API is v2. Transcript endpoints live under `https://transcriptfetch.com/api/v2/transcripts/`: `POST /video` (one video), `POST /batch` (up to 50 in one request, 500 on Mega and Scale), `POST /search` (find videos by keyword), `POST /playlist`, and `POST /channel`. v1 (`/api/v1/...`) is still served for existing integrations with a 12-month deprecation policy; new work should use v2. The `video` field accepts a bare 11-character YouTube ID or any YouTube, TikTok, or Instagram URL, a Spotify or Apple Podcasts episode URL, a podcast RSS feed URL, plus direct media file URLs (mp4, mp3, wav).
+- Channel, playlist, and search listing are YouTube-only. The single-transcript endpoint works across every supported source listed above.
+- When a source has no caption track, `mode: "auto"` transcribes the audio. Short media may finish inline after a wait of up to 45 seconds; longer work returns HTTP 202 with a `job_id` and `poll_url`. A `callback_url` can receive the finished result instead of polling.
+- Responses use a JSON envelope: `{ ok, request_id, data, usage }`. A synchronous transcript contains either joined `text` or timestamped `segments`, depending on `timestamps`. Job and batch results include both. Podcast results can also include episode metadata and best-effort speaker labels.
+- Authentication uses a bearer token: `Authorization: Bearer tf_live_YOUR_KEY`. Requests without a valid key return 401.
+- Billing is monthly credit subscriptions: Basic $5 / 1,000 credits, Pro $15 / 10,000, Mega $45 / 50,000, and Scale $229 / 300,000 (annual billing is 10 months for 12). Top-ups are bought at each plan's own per-1,000 rate ($5.00 Basic, $1.50 Pro, $0.90 Mega, $0.76 Scale; $10 without a plan) and never expire. Unused plan credits roll over month to month up to 2x the monthly allowance. The free tier is 100 credits per month with no card. Successful caption transcripts and YouTube listing calls cost 1 credit; audio transcription costs 1 credit per started minute, minimum 1, and is billed only on delivery. Failed, blocked, or empty results and job polling are free. Rate limits: 10 requests per minute free, 60 on Basic, 300 on Pro, 900 on Mega and Scale.
+- Status codes are meaningful: 400 is invalid input, 401 is an invalid key, 402 is insufficient credits, 409 is an idempotency conflict, 422 requires changing the input, 429 means respect `Retry-After`, and 500/502/503 are server or transient upstream failures.
+- An MCP server at `https://transcriptfetch.com/mcp` (streamable HTTP, OAuth or API key) exposes five tools, `get_transcript`, `search_videos`, `list_channel_videos`, `list_playlist_videos` and `get_credits`, for Claude, ChatGPT, Cursor, Perplexity, and other MCP clients.
+
+## Complete reference
+
+- [llms-full.txt](https://transcriptfetch.com/llms-full.txt): Every endpoint, request field, response field, and error code inline, generated from the OpenAPI document.
+- [OpenAPI document](https://transcriptfetch.com/api/v2/openapi.json): Machine-readable spec for v2. The v1 spec remains at https://transcriptfetch.com/api/v1/openapi.json.
+- [MCP server card](https://transcriptfetch.com/.well-known/mcp/server-card.json): Public machine-readable server metadata, authentication, transport, and tool schemas.
+
+## Documentation
+
+- [Documentation home](https://transcriptfetch.com/docs): Index of guides, integrations, and the API reference for TranscriptFetch.
+- [Quickstart](https://transcriptfetch.com/docs): Product overview, base URL, API key, authentication, first request, SDKs, integrations, and rate limits.
+- [Guides](https://transcriptfetch.com/docs/request-builder): Request builder, supported sources, AI transcription, rate limits, pagination & idempotency, and billing & credits.
+- [Billing & credits](https://transcriptfetch.com/docs/billing): What each request costs, how audio transcription is charged, plan allowances, rollover, top-up bundles per plan, and what happens at zero balance.
+- [API introduction](https://transcriptfetch.com/docs/api-reference): API scopes, base URL, authentication, responses, SDKs, and integrations.
+- [Endpoint reference](https://transcriptfetch.com/docs/endpoints): Request fields, live Try it forms, request examples, success responses, and endpoint-specific errors.
+- [Error codes & outcomes](https://transcriptfetch.com/docs/errors): Canonical request errors, per-video outcomes, retry guidance, and error response examples.
+- [Claude MCP server](https://transcriptfetch.com/claude-mcp-server): Add the transcript server to Claude, Claude Code, or Claude Desktop; all three setup paths step by step.
+- [MCP server](https://transcriptfetch.com/mcp-server): Connect Claude, Claude Code, Cursor, or Codex to fetch video and podcast transcripts as tools; per-client setup and pricing.
+- [MCP configuration reference](https://transcriptfetch.com/docs/mcp): Remote endpoint, tools, OAuth, and API-key setup for Claude, ChatGPT, Cursor, Perplexity, and other MCP clients.
+- [Status](https://status.transcriptfetch.com): Uptime, per-service status, and incident history.
+
+## Product
+
+- [Home](https://transcriptfetch.com/): Overview of supported platforms, endpoints, and use cases.
+- [Pricing](https://transcriptfetch.com/pricing): Monthly credit plans from $5, annual billing with two months free, top-ups at each plan's own per-1,000 rate ($10 per 1,000 without a plan), and a free tier of 100 credits per month.
+- [Blog](https://transcriptfetch.com/blog): Guides and tutorials for building on transcript data.
+- [Contact](https://transcriptfetch.com/contact): Reach the team for support, higher rate limits, or custom needs.
+
+## Trust and reliability
+
+- [Trust & reliability](https://transcriptfetch.com/trust): Independently verifiable facts for evaluating whether to depend on this API: third-party uptime monitoring, public health endpoints, stability commitments, and what we do not claim.
+- [Security](https://transcriptfetch.com/security): API keys are SHA-256 hashed and never stored in plaintext, TLS in transit, no exposed origin (outbound Cloudflare tunnel), 30-day deletion of anonymous free-tool records, full subprocessor list, and a vulnerability disclosure process with a 3-business-day response commitment. Not SOC 2 or ISO 27001 certified.
+- [API versioning policy](https://transcriptfetch.com/docs/v1): What counts as a breaking change, which changes ship additively without notice, and a minimum 12-month deprecation notice with a `Deprecation` response header.
+- [CSA STAR Registry entry](https://cloudsecurityalliance.org/star/registry/transcriptfetch): Level 1 CAIQ v4 self-assessment published on the Cloud Security Alliance registry, answering all 261 Cloud Controls Matrix questions.
+- [Status page](https://status.transcriptfetch.com): Uptime, per-service status and incident history, recorded by an independent monitor.
+- [Changelog](https://transcriptfetch.com/changelog): Dated record of shipped changes.
+
+## SDKs
+
+- [Python SDK](https://pypi.org/project/transcriptfetch-sdk/): `pip install transcriptfetch-sdk`
+- [Node SDK](https://www.npmjs.com/package/transcriptfetch): `npm install transcriptfetch`
+- [n8n node](https://www.npmjs.com/package/n8n-nodes-transcriptfetch): `n8n-nodes-transcriptfetch`
+- [Postman collection](https://www.postman.com/transcriptfetch): Publisher profile and collection.
+
+## Optional
+
+- [Sign in](https://transcriptfetch.com/sign-in): Account sign-in for the dashboard.
+- [Sign up](https://transcriptfetch.com/sign-up): Create an account to get an API key and 100 free credits a month.

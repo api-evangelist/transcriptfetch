@@ -1,0 +1,46 @@
+generated: '2026-09-09'
+method: derived
+source: openapi/transcriptfetch-api-v2-openapi.json component schemas and $ref links
+entities:
+- name: Transcript
+  schema: TranscriptData
+  key_fields: [video_id, platform, title, source, text, bytes]
+  note: source is "captions" or "audio"; carries either joined text or segments depending on the timestamps request field.
+- name: Segment
+  schema: Segment
+  key_fields: [start, duration, text, speaker]
+  note: speaker is a best-effort diarization id on podcast audio.
+- name: Video
+  schema: Video
+  key_fields: [videoId, url, title, duration, channel, publishedAt]
+  note: One listing entry from channel/playlist/search pages; url is accepted as-is by the transcript and batch endpoints.
+- name: TranscriptJob
+  schema: TranscriptJobData / JobStatusEnvelope
+  key_fields: [job_id, video_id, platform, status]
+  note: Created on 202 for longer audio transcription; polled at /api/v2/transcripts/jobs/{jobId} or delivered via callback_url.
+- name: BatchResult
+  schema: BatchResult
+  key_fields: [video_id, outcome, job_id, poll_url]
+  note: outcome is exactly ok | processing | error.
+- name: Account
+  schema: MeData
+  key_fields: [user_id, credits]
+- name: Usage
+  schema: Usage
+  note: Credits spent and remaining balance, attached to every success envelope.
+- name: ErrorBlock
+  schema: ErrorBlock
+  key_fields: [code, number, message, docs]
+relationships:
+- {from: Transcript, to: Segment, kind: has_many, via: "segments[]"}
+- {from: BatchResult, to: Segment, kind: has_many, via: "segments[] (outcome ok only)"}
+- {from: BatchResult, to: TranscriptJob, kind: belongs_to, via: "job_id (outcome processing only)"}
+- {from: BatchResult, to: ErrorBlock, kind: has_one, via: "error (outcome error only)"}
+- {from: TranscriptJob, to: Transcript, kind: has_one, via: "completed job's data payload"}
+- {from: Account, to: Usage, kind: has_many, via: "usage block on every billed response"}
+- {from: Video, to: Transcript, kind: has_one, via: "video_id passed to fetchVideoTranscript"}
+envelopes:
+  success: 'SuccessEnvelope { ok, request_id, data (discriminated by data.kind), usage }'
+  accepted: 'JobAcceptedEnvelope (202) { ok, request_id, job_id, poll_url, data: TranscriptJobData }'
+  batch: 'BatchEnvelope { ok, request_id, data: { kind: transcript_batch, results[] }, usage }'
+  error: 'ErrorEnvelope { ok:false, request_id, error: ErrorBlock }'

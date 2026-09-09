@@ -1,0 +1,64 @@
+generated: '2026-09-09'
+method: searched
+source: https://transcriptfetch.com/changelog and the dated changelog on https://transcriptfetch.com/docs/v1
+url: https://transcriptfetch.com/changelog
+scheme: Dated entries tagged by area (Billing, API, MCP, Integrations, Docs, Platforms); API versions use path prefixes.
+current_version: v2 (released 2026-09-03)
+entries:
+- date: '2026-09-09'
+  area: Billing
+  breaking: false
+  highlights: AI audio transcription cut to 1 credit per started minute (from 2); retroactive credit back to 2026-08-24 for paid plans.
+- date: '2026-09-03'
+  area: API
+  breaking: false
+  highlights: >-
+    v2 released as a new path prefix; v1 stays supported indefinitely with frozen shape.
+    v2 changes response shapes only: one canonical error block {code, number, message,
+    docs}, six new specific error codes, ai_fallback block replaced by error.retry_with
+    and data.source, three batch outcomes (ok/processing/error).
+- date: '2026-08-28'
+  area: API
+  breaking: false
+  highlights: AI transcription pipeline rebuilt ~3x faster; worst case dropped from 20s+ to under 4s.
+- date: '2026-08-28'
+  area: Billing
+  breaking: false
+  highlights: Basic 1,000 credits (was 500), Pro 10,000 (was 5,000), new Scale tier 300,000/$229; top-ups repriced to plan rates; existing plans topped up automatically.
+- date: '2026-08-24'
+  area: Billing
+  breaking: false
+  highlights: AI transcription moved to per-minute pricing (2 credits/minute, later cut to 1).
+- date: '2026-08'
+  area: API (v1 additive)
+  breaking: false
+  highlights: >-
+    Batch transcribes captionless entries from audio by default; upstream failures now
+    503 upstream_error (429 reserved for the caller's own rate limit); X/Twitter,
+    Facebook, and /api/v1/web scrape endpoints removed (return 422
+    unsupported_platform); podcast diarization speaker ids.
+- date: '2026-07-24'
+  area: MCP
+  breaking: false
+  highlights: get_credits tool; typed tool output schemas; read-only annotations; protocol revision 2025-11-25; session-id headers.
+- date: '2026-07-23'
+  area: Integrations
+  breaking: false
+  highlights: GET /api/v1/me free balance endpoint; official n8n community node on npm with build provenance; monthly credit plans launched.
+- date: '2026-07-19'
+  area: Platforms
+  breaking: false
+  highlights: TikTok and Instagram transcripts on the same endpoint as YouTube.
+- date: '2026-07-16'
+  area: Integrations
+  breaking: false
+  highlights: Official Python and Node SDKs.
+- date: '2026-07-15'
+  area: MCP
+  breaking: false
+  highlights: Hosted MCP server launched at https://transcriptfetch.com/mcp (OAuth or API key).
+- date: '2026-06-15'
+  area: API
+  breaking: false
+  highlights: Versioned /api/v1 endpoints, canonical error object, Idempotency-Key support, cursor pagination, OpenAPI 3.1 spec published.
+note: One-person operation shipping most days (stated on the changelog page); RSS feed advertised via the changelog widget.

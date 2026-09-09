@@ -1,0 +1,42 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enrichment overlay for the TranscriptFetch v2 OpenAPI
+  version: 1.0.0
+x-generated: '2026-09-09'
+x-method: generated
+x-source: Catalog enrichment artifacts in this repository; the original spec at openapi/transcriptfetch-api-v2-openapi.json is never mutated.
+extends: openapi/transcriptfetch-api-v2-openapi.json
+actions:
+- target: $.info
+  update:
+    x-artifacts:
+      authentication: authentication/transcriptfetch-authentication.yml
+      conventions: conventions/transcriptfetch-conventions.yml
+      errors: errors/transcriptfetch-problem-types.yml
+      rate-limits: rate-limits/transcriptfetch-rate-limits.yml
+      plans: plans/transcriptfetch-plans-pricing.yml
+      lifecycle: lifecycle/transcriptfetch-lifecycle.yml
+      data-model: data-model/transcriptfetch-data-model.yml
+      mcp: mcp/transcriptfetch-mcp.yml
+      tool-crosswalk: mcp/transcriptfetch-tool-crosswalk.yml
+- target: $.info
+  update:
+    x-status-page: https://status.transcriptfetch.com
+    x-health-endpoints:
+    - https://transcriptfetch.com/api/v2/health
+    - https://transcriptfetch.com/api/v2/health/deep
+- target: $.paths['/api/v2/transcripts/video'].post
+  update:
+    x-mcp-tool: get_transcript
+- target: $.paths['/api/v2/transcripts/search'].post
+  update:
+    x-mcp-tool: search_videos
+- target: $.paths['/api/v2/transcripts/channel'].post
+  update:
+    x-mcp-tool: list_channel_videos
+- target: $.paths['/api/v2/transcripts/playlist'].post
+  update:
+    x-mcp-tool: list_playlist_videos
+- target: $.paths['/api/v2/me'].get
+  update:
+    x-mcp-tool: get_credits

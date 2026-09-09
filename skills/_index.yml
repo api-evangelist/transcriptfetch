@@ -1,0 +1,13 @@
+generated: '2026-09-09'
+method: generated
+source: Grounded in openapi/transcriptfetch-api-v2-openapi.json operationIds and the provider's docs; no provider-published skills or AGENTS.md found (checked GitHub org and docs 2026-09-09).
+skills:
+- file: skills/transcriptfetch-get-transcript.md
+  name: transcriptfetch-get-transcript
+  operations: [fetchVideoTranscript, getTranscriptJob]
+- file: skills/transcriptfetch-monitor-channel.md
+  name: transcriptfetch-monitor-channel
+  operations: [fetchChannelVideos, fetchVideoTranscript]
+- file: skills/transcriptfetch-batch-transcripts.md
+  name: transcriptfetch-batch-transcripts
+  operations: [fetchTranscriptsBatch, getTranscriptJob]

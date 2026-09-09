@@ -1,0 +1,1 @@
+{"resource":"https://transcriptfetch.com/mcp","authorization_servers":["https://clerk.transcriptfetch.com"],"scopes_supported":["openid","profile","email","offline_access"],"bearer_methods_supported":["header"],"resource_name":"TranscriptFetch","resource_documentation":"https://transcriptfetch.com/docs/mcp"}

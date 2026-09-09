@@ -1,0 +1,26 @@
+generated: '2026-09-09'
+method: probed
+source: >-
+  https://transcriptfetch.com/.well-known/oauth-protected-resource and
+  https://clerk.transcriptfetch.com/.well-known/oauth-authorization-server (both HTTP
+  200, fetched 2026-09-09). The REST OpenAPI declares only bearerAuth (API key), so
+  derive-oauth-scopes.py found no oauth2 scheme; these scopes come from the served
+  OAuth metadata, which governs the MCP surface.
+docs: https://transcriptfetch.com/docs/mcp
+surface: MCP server (https://transcriptfetch.com/mcp) via Clerk-run OAuth; REST API uses bearer API keys without scopes.
+scopes:
+- name: openid
+  description: OpenID Connect authentication (standard OIDC scope).
+- name: profile
+  description: Access to basic profile claims (name, picture, preferred_username).
+- name: email
+  description: Access to the account email address and verification status.
+- name: offline_access
+  description: Refresh-token issuance for long-lived MCP client connections.
+- name: public_metadata
+  description: Clerk user public metadata (authorization-server metadata; not documented per-endpoint by TranscriptFetch).
+- name: private_metadata
+  description: Clerk user private metadata (authorization-server metadata; not documented per-endpoint by TranscriptFetch).
+notes:
+- The protected-resource document scopes_supported lists openid, profile, email, offline_access for the MCP resource.
+- Identity scopes only — API authorization is account/credit-based, not scope-partitioned; there are no per-tool or per-endpoint scopes.

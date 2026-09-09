@@ -1,0 +1,26 @@
+generated: '2026-09-09'
+method: searched
+source: openapi/transcriptfetch-api-v2-openapi.json (VideoRequest.callback_url and job envelopes) and https://transcriptfetch.com/docs/endpoints
+note: >-
+  No AsyncAPI document and no subscription event bus is published — the event surface is
+  a single per-request result callback, captured here honestly rather than fabricated
+  into an AsyncAPI. Recorded as type Webhooks.
+webhooks:
+- name: transcript-job-result
+  direction: outbound (provider POSTs to the consumer)
+  trigger: >-
+    A transcript request that escalates to AI audio transcription (HTTP 202 with
+    job_id/poll_url) finishes or fails, when the request supplied callback_url instead
+    of polling.
+  register_via: callback_url field (uri, max 2000 chars, must be public https) on POST /api/v2/transcripts/video and batch entries
+  delivery:
+    method: POST
+    success_body: '{ ok, status, job_id, data }'
+    failure_body: '{ ok, status, job_id, error }'
+    note: A trimmed envelope without the usage and request_id fields the poll URL adds.
+  security:
+    signature_header: 'X-TranscriptFetch-Signature: sha256=<hex>'
+    scheme: HMAC-SHA256 over the exact body bytes, when a signing secret is configured on the provider side.
+events:
+- transcript_job.completed
+- transcript_job.failed

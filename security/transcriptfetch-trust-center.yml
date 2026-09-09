@@ -1,0 +1,41 @@
+generated: '2026-09-09'
+method: searched
+probe: true
+source: https://transcriptfetch.com/trust
+url: https://transcriptfetch.com/trust
+note: >-
+  The trust page explicitly states TranscriptFetch is NOT SOC 2 or ISO 27001 certified
+  and holds no BAA or FedRAMP authorization — the keyword probe's SOC 2 / ISO 27001
+  matches were the disclaimer sentence, not claims. What IS published: a CSA STAR
+  Registry Level 1 CAIQ v4 self-assessment answering all 261 Cloud Controls Matrix
+  questions, an independent third-party status page, public shallow + deep health
+  endpoints, a full subprocessor list, and a 12-month versioning/deprecation commitment.
+certifications: []
+self_assessments:
+- name: CSA STAR Level 1 (CAIQ v4 self-assessment)
+  registry: https://cloudsecurityalliance.org/star/registry/transcriptfetch
+  detail: Answers all 261 Cloud Controls Matrix questions; published on the Cloud Security Alliance STAR Registry (verified HTTP 200 2026-09-09).
+disclaimed:
+- SOC 2
+- ISO 27001
+- BAA (HIPAA)
+- FedRAMP
+privacy:
+  gdpr_ccpa: Honours GDPR and CCPA data rights requests (stated on /security).
+  data_use: No sale of personal data; transcript requests are not used to train models.
+subprocessors:
+- {name: Clerk, purpose: Authentication}
+- {name: Neon, purpose: Postgres database}
+- {name: Stripe, purpose: Payments}
+- {name: Cloudflare, purpose: DNS, note: CDN + TLS termination + outbound tunnel (no exposed origin)}
+- {name: DeepInfra, purpose: Speech recognition for videos with no captions}
+- {name: Resend, purpose: Transactional email}
+- {name: Better Stack, purpose: Uptime monitoring}
+- {name: Microsoft Clarity, purpose: Product analytics}
+evidence:
+- source: https://transcriptfetch.com/trust
+  detail: "'We are not SOC 2 or ISO 27001 certified. If your procurement needs that, say so...'"
+- source: https://transcriptfetch.com/security
+  detail: "'TranscriptFetch is not currently SOC 2 or ISO 27001 certified, and we do not have a signed BAA or FedRAMP authorisation.'"
+- source: https://cloudsecurityalliance.org/star/registry/transcriptfetch
+  status: 200
