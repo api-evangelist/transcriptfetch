@@ -9,6 +9,27 @@ created: '2026-09-09'
 modified: '2026-09-09'
 specificationVersion: '0.21'
 tags:
+  - Transcripts
+  - Speech-to-Text
+  - Captions
+  - YouTube
+  - TikTok
+  - Instagram
+  - Podcasts
+  - MCP
+  - llms-txt
+  - OpenAPI
+  - Transcription
+  - Video
+  - AI/LLM
+  - RAG
+  - Agents
+  - Developer Tools
+  - Media
+  - Content
+  - Spotify
+  - Apple Podcasts
+tags_raw:
   - transcripts
   - speech-to-text
   - captions
@@ -36,76 +57,65 @@ tags:
   - Spotify
   - Apple Podcasts
 apis:
-  - name: TranscriptFetch REST API
-    description: >-
-      REST API (current version v2, path-prefixed) for fetching timestamped transcripts from YouTube, TikTok, Instagram,
-      Spotify, Apple Podcasts, podcast RSS feeds, and direct media files, with AI audio transcription when captions are
-      missing, plus YouTube channel/playlist/search discovery, batch up to 500, async jobs with polling or signed
-      callbacks, cursor pagination, Idempotency-Key replay, and credit-based billing where failures are free. Auth via
-      bearer API key (tf_live_...); a hosted MCP server at /mcp exposes the same surface as five tools over OAuth or
-      API key.
-    image: https://transcriptfetch.com/opengraph-image
-    humanURL: https://transcriptfetch.com/docs/api-reference
-    baseURL: https://transcriptfetch.com
-    tags:
-      - transcripts
-      - speech-to-text
-      - captions
-      - youtube
-      - tiktok
-      - instagram
-      - podcasts
-      - mcp
-      - llms-txt
-      - openapi
-      - Transcription
-      - Speech-to-Text
-      - Video
-      - Podcasts
-      - AI/LLM
-      - RAG
-      - Agents
-      - MCP
-      - Developer Tools
-      - Media
-      - Content
-      - YouTube
-      - TikTok
-      - Instagram
-      - Spotify
-      - Apple Podcasts
-    properties:
-      - type: OpenAPI
-        url: openapi/transcriptfetch-api-v2-openapi.json
-      - type: OpenAPI
-        url: openapi/transcriptfetch-api-v1-openapi.json
-      - type: OpenAPI
-        url: https://transcriptfetch.com/api/v2/openapi.json
-      - type: OpenAPI
-        url: https://transcriptfetch.com/api/v1/openapi.json
-      - type: Overlay
-        url: overlays/transcriptfetch-api-v2-overlay.yaml
-      - type: Documentation
-        url: https://transcriptfetch.com/docs
-      - type: APIReference
-        url: https://transcriptfetch.com/docs/api-reference
-      - type: Documentation
-        url: https://transcriptfetch.com/docs/endpoints
-      - type: LLMsTxt
-        url: https://transcriptfetch.com/llms.txt
-      - type: LLMsTxt
-        url: llms/transcriptfetch-llms.txt
-      - type: MCPServer
-        url: https://transcriptfetch.com/mcp
-      - type: MCPServer
-        url: mcp/transcriptfetch-mcp.yml
-      - type: ToolCrosswalk
-        url: mcp/transcriptfetch-tool-crosswalk.yml
-      - type: Documentation
-        url: https://transcriptfetch.com/docs/mcp
-      - type: Documentation
-        url: https://transcriptfetch.com/claude-mcp-server
+- aid: transcriptfetch:transcriptfetch-system-api
+  name: TranscriptFetch System API
+  description: Service health and metadata
+  humanURL: https://transcriptfetch.com/docs/api-reference
+  baseURL: https://transcriptfetch.com
+  tags:
+  - System
+  properties:
+  - type: OpenAPI
+    url: openapi/transcriptfetch-system-api-openapi.yml
+  - type: Documentation
+    url: https://transcriptfetch.com/docs
+  - type: APIReference
+    url: https://transcriptfetch.com/docs/api-reference
+  - type: Documentation
+    url: https://transcriptfetch.com/docs/endpoints
+  - type: LLMsTxt
+    url: https://transcriptfetch.com/llms.txt
+  - type: LLMsTxt
+    url: llms/transcriptfetch-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/transcriptfetch-tool-crosswalk.yml
+  - type: Documentation
+    url: https://transcriptfetch.com/docs/mcp
+  - type: Documentation
+    url: https://transcriptfetch.com/claude-mcp-server
+- aid: transcriptfetch:transcriptfetch-transcripts-api
+  name: TranscriptFetch Transcripts API
+  description: Transcript and video-list endpoints
+  humanURL: https://transcriptfetch.com/docs/api-reference
+  baseURL: https://transcriptfetch.com
+  tags:
+  - Transcripts
+  properties:
+  - type: OpenAPI
+    url: openapi/transcriptfetch-transcripts-api-openapi.yml
+  - type: Documentation
+    url: https://transcriptfetch.com/docs
+  - type: APIReference
+    url: https://transcriptfetch.com/docs/api-reference
+  - type: Documentation
+    url: https://transcriptfetch.com/docs/endpoints
+  - type: LLMsTxt
+    url: https://transcriptfetch.com/llms.txt
+  - type: LLMsTxt
+    url: llms/transcriptfetch-llms.txt
+  - type: ToolCrosswalk
+    url: mcp/transcriptfetch-tool-crosswalk.yml
+  - type: Documentation
+    url: https://transcriptfetch.com/docs/mcp
+  - type: Documentation
+    url: https://transcriptfetch.com/claude-mcp-server
 common:
+- type: Overlay
+  url: overlays/transcriptfetch-api-v2-overlay.yaml
+- type: MCPServer
+  url: https://transcriptfetch.com/mcp
+- type: MCPServer
+  url: mcp/transcriptfetch-mcp.yml
 - type: Website
   url: https://transcriptfetch.com
 - type: TrustCenter
