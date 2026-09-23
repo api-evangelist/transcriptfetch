@@ -1,0 +1,26 @@
+{
+  "provider": "transcriptfetch",
+  "sources": [
+    "_original/transcriptfetch-api-v1-openapi.json",
+    "_original/transcriptfetch-api-v2-openapi.json"
+  ],
+  "outputs": [
+    "transcriptfetch-system-api-openapi.yml",
+    "transcriptfetch-transcripts-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (2 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "transcriptfetch-api-v1-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "transcriptfetch-api-v2-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "tag 'System' spans 2 source specs (transcriptfetch-api-v1-openapi.json, transcriptfetch-api-v2-openapi.json): per-path servers applied",
+    "tag 'Transcripts' spans 2 source specs (transcriptfetch-api-v1-openapi.json, transcriptfetch-api-v2-openapi.json): per-path servers applied",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "transcriptfetch-system-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "transcriptfetch-transcripts-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}

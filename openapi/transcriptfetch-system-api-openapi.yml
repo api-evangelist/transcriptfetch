@@ -1,0 +1,706 @@
+openapi: 3.2.0
+info:
+  title: Transcriptfetch System API
+  version: '1.0'
+  description: 'Operations tagged System across 2 of this provider''s published API definitions: transcriptfetch-api-v1-openapi.json, transcriptfetch-api-v2-openapi.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://transcriptfetch.com
+  description: Production
+security:
+- bearerAuth: []
+tags:
+- name: System
+  description: Service health and metadata
+paths:
+  /api/v1/me:
+    get:
+      tags:
+      - System
+      summary: Validate your key & check balance
+      description: Validates the API key and returns the account's remaining credit balance. Free - never billed. Useful for programmatic balance checks and as a credential test in integrations.
+      operationId: me
+      externalDocs:
+        description: 'Full API reference: fields, response shape, and error codes'
+        url: https://transcriptfetch.com/docs/endpoints
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                example:
+                  value:
+                    ok: true
+                    request_id: req_…
+                    data:
+                      kind: me
+                      user_id: user_…
+                      credits: 250
+                    usage:
+                      credits_spent: 0
+                      balance: 250
+                      bytes: 0
+        '401':
+          $ref: '#/components/responses/Error'
+    servers:
+    - url: https://transcriptfetch.com
+      description: Production
+  /api/v1/health:
+    get:
+      tags:
+      - System
+      summary: Health check
+      description: Public liveness probe for uptime monitoring. Returns 200 whenever the API is serving. No authentication required and no credits used.
+      operationId: healthCheck
+      security: []
+      externalDocs:
+        description: 'Full API reference: fields, response shape, and error codes'
+        url: https://transcriptfetch.com/docs/endpoints
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              examples:
+                example:
+                  value:
+                    status: ok
+                    service: transcriptfetch-api
+                    version: 1.0.0
+                    time: '2026-06-16T00:00:00.000Z'
+    servers:
+    - url: https://transcriptfetch.com
+      description: Production
+  /api/v2/me:
+    get:
+      tags:
+      - System
+      summary: Validate your key & check balance
+      description: Validates the API key and returns the account's remaining credit balance. Free - never billed. Useful for programmatic balance checks and as a credential test in integrations.
+      operationId: me
+      externalDocs:
+        description: 'Full API reference: fields, response shape, and error codes'
+        url: https://transcriptfetch.com/docs/endpoints
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              examples:
+                example:
+                  value:
+                    ok: true
+                    request_id: req_…
+                    data:
+                      kind: me
+                      user_id: user_…
+                      credits: 250
+                    usage:
+                      credits_spent: 0
+                      balance: 250
+                      bytes: 0
+        '401':
+          $ref: '#/components/responses/Error'
+    servers:
+    - url: https://transcriptfetch.com
+      description: Production
+  /api/v2/health:
+    get:
+      tags:
+      - System
+      summary: Health check
+      description: Public liveness probe for uptime monitoring. Returns 200 whenever the API is serving. No authentication required and no credits used.
+      operationId: healthCheck
+      security: []
+      externalDocs:
+        description: 'Full API reference: fields, response shape, and error codes'
+        url: https://transcriptfetch.com/docs/endpoints
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              examples:
+                example:
+                  value:
+                    status: ok
+                    service: transcriptfetch-api
+                    version: 2.0.0
+                    time: '2026-06-16T00:00:00.000Z'
+    servers:
+    - url: https://transcriptfetch.com
+      description: Production
+components:
+  schemas:
+    MeData:
+      type: object
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - me
+        user_id:
+          type: string
+        credits:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance, or null for unlimited (admin) accounts.
+    VideoListData:
+      type: object
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - video_list
+        source:
+          type: string
+        videos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Video'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Pass back as `cursor` for the next page; null when exhausted.
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+        service:
+          type: string
+        version:
+          type: string
+        time:
+          type: string
+          format: date-time
+    AiFallback:
+      type: object
+      description: Attached to transcript failures. Distinguishes 'this video has no captions' from 'we could not check', and says whether transcribing the audio would still work.
+      required:
+      - available
+      - captions_unavailable
+      - message
+      properties:
+        available:
+          type: boolean
+          description: True when retrying the same request with ai_fallback:true would actually start a transcription.
+        captions_unavailable:
+          type: boolean
+          description: True only when we reached the video and confirmed no caption track exists. False means we could not check, NOT that captions exist.
+        unavailable_reason:
+          type: string
+          enum:
+          - unsupported_input
+          - no_speech_to_transcribe
+          - content_inaccessible
+          - retry_captions_first
+          - insufficient_credits
+          description: 'Present when available is false: why AI transcription cannot be used.'
+        message:
+          type: string
+        retry_with:
+          type: object
+          description: Merge into the original request body to trigger the fallback.
+          properties:
+            ai_fallback:
+              type: boolean
+              enum:
+              - true
+        cost_credits:
+          type: integer
+          description: Credits charged on successful delivery. Failures are free. AI transcription bills by audio length, so this is an estimate from the measured media length when cost_estimated is true, and otherwise the one-block minimum.
+        cost_estimated:
+          type: boolean
+          description: True when cost_credits came from the media's real duration; false when it is only the minimum, because the length was not known at that point.
+        balance:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance; null for admins.
+    SuccessEnvelope:
+      type: object
+      required:
+      - ok
+      - request_id
+      - data
+      - usage
+      properties:
+        ok:
+          type: boolean
+          enum:
+          - true
+        request_id:
+          type: string
+        data:
+          oneOf:
+          - $ref: '#/components/schemas/TranscriptData'
+          - $ref: '#/components/schemas/VideoListData'
+          - $ref: '#/components/schemas/MeData'
+          discriminator:
+            propertyName: kind
+        usage:
+          $ref: '#/components/schemas/Usage'
+    Video:
+      type: object
+      properties:
+        videoId:
+          type: string
+        title:
+          type: string
+        thumbnailUrl:
+          type: string
+        duration:
+          type:
+          - number
+          - 'null'
+        channel:
+          type:
+          - string
+          - 'null'
+    TranscriptData:
+      type: object
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - transcript
+        video_id:
+          type: string
+        title:
+          type:
+          - string
+          - 'null'
+        thumbnailUrl:
+          type:
+          - string
+          - 'null'
+          description: Poster image for the video. TikTok and Instagram serve signed, expiring URLs, so copy the image rather than hotlinking it.
+        diarized:
+          type: boolean
+          description: True when speaker diarization produced labels (podcast transcriptions only); segments then carry `speaker` ids.
+        text:
+          type:
+          - string
+          - 'null'
+        segments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Segment'
+        podcast:
+          type: object
+          description: Present only when the input was a podcast link. Spotify and Apple do not host podcast audio; both read the publisher's RSS feed, so the link is resolved to that feed and the episode's own audio file. These fields say which show and episode were matched, so you can verify the resolution was correct.
+          properties:
+            show:
+              type:
+              - string
+              - 'null'
+            episode:
+              type:
+              - string
+              - 'null'
+            published_at:
+              type:
+              - string
+              - 'null'
+              format: date-time
+            feed_url:
+              type:
+              - string
+              - 'null'
+              format: uri
+            audio_url:
+              type: string
+              format: uri
+            resolved_via:
+              type: string
+              enum:
+              - spotify
+              - apple
+              - rss
+              - direct
+    ErrorEnvelope:
+      type: object
+      required:
+      - ok
+      - request_id
+      - error
+      properties:
+        ok:
+          type: boolean
+          enum:
+          - false
+        request_id:
+          type: string
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              enum:
+              - unauthorized
+              - invalid_request
+              - insufficient_credits
+              - rate_limited
+              - idempotency_conflict
+              - unsupported_platform
+              - upstream_unavailable
+              - internal_error
+              - live_stream
+              - was_live
+              - no_audio_stream
+              - audio_too_long
+              - no_speech
+              - captions_disabled
+              - no_captions
+              - age_restricted
+              - members_only
+              - private
+              - unavailable
+              - bot_gate
+              - rate_limited
+              - ip_blocked
+              - region_blocked
+              - timeout
+              - upstream_error
+              - proxy_unavailable
+              - connection
+              - parse_error
+              - invalid_input
+              - drm_protected
+              - unknown
+            message:
+              type: string
+            issues:
+              type: array
+              description: Field-level validation problems, when applicable.
+              items:
+                type: object
+        reason:
+          type: string
+          description: Structured failure reason on transcript endpoints (no_captions, captions_disabled, age_restricted, rate_limited, …).
+        ai_fallback:
+          $ref: '#/components/schemas/AiFallback'
+    Usage:
+      type: object
+      properties:
+        credits_spent:
+          type: integer
+        balance:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance, or null for unlimited (admin) accounts.
+        bytes:
+          type: integer
+    Segment:
+      type: object
+      properties:
+        start:
+          type: number
+          description: Start time in seconds.
+        duration:
+          type: number
+          description: Cue duration in seconds.
+        text:
+          type: string
+        speaker:
+          type: integer
+          description: Speaker id (0, 1, …) on diarized podcast transcripts only; absent everywhere else.
+    VideoListData_2:
+      type: object
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - video_list
+        source:
+          type: string
+          description: 'Which listing produced the page: channel, playlist or search.'
+        platform:
+          type: string
+          enum:
+          - youtube
+          - tiktok
+          - instagram
+          - spotify
+          - apple
+          - rss
+          description: 'Where the rows came from: the `platform` field on search, the platform detected from the URL on channel and playlist.'
+        videos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Video_2'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Pass back as `cursor` for the next page; null when exhausted.
+    ErrorBlock:
+      type: object
+      required:
+      - code
+      - number
+      - message
+      - docs
+      description: 'Every failure carries this block. Branch on code (a stable string) or number (a stable integer whose thousands digit is the family: 1 request, 2 account, 3 input, 4 content, 5 transient, 9 ours; 5xxx means retry with backoff). At most one of retry_with, details, issues is present. Failures are never charged.'
+      properties:
+        code:
+          type: string
+          enum:
+          - invalid_request
+          - invalid_cursor
+          - unauthorized
+          - idempotency_conflict
+          - not_found
+          - insufficient_credits
+          - batch_too_large
+          - rate_limited
+          - unsupported_platform
+          - endpoint_platform_mismatch
+          - podcast_feed_not_found
+          - audio_ineligible
+          - invalid_input
+          - audio_too_long
+          - drm_protected
+          - private
+          - unavailable
+          - members_only
+          - age_restricted
+          - region_blocked
+          - live_stream
+          - was_live
+          - no_captions
+          - captions_disabled
+          - no_speech
+          - no_audio_stream
+          - upstream_error
+          - timeout
+          - connection
+          - proxy_unavailable
+          - parse_error
+          - upstream_unavailable
+          - internal_error
+          - unknown
+        number:
+          type: integer
+          enum:
+          - 1001
+          - 1002
+          - 1101
+          - 1201
+          - 1301
+          - 2001
+          - 2002
+          - 2101
+          - 3001
+          - 3002
+          - 3003
+          - 3004
+          - 3005
+          - 3006
+          - 3007
+          - 4001
+          - 4002
+          - 4003
+          - 4004
+          - 4005
+          - 4101
+          - 4102
+          - 4103
+          - 4104
+          - 4105
+          - 4106
+          - 5001
+          - 5002
+          - 5003
+          - 5004
+          - 5005
+          - 5101
+          - 9001
+          - 9002
+        message:
+          type: string
+          description: Prose for humans. Never parse it.
+        docs:
+          type: string
+          format: uri
+          description: https://transcriptfetch.com/docs/errors/<code>
+        retry_with:
+          type: object
+          description: 'Present when a different request would succeed: the fields to change, e.g. { "mode": "audio" } to transcribe a captionless video, or { "endpoint": "/api/v2/transcripts/video" } for a platform this endpoint does not list.'
+          additionalProperties: true
+        details:
+          type: object
+          description: 'Structured specifics for the few codes that document one: batch_too_large { max, sent }, podcast_feed_not_found { reason, candidates? }.'
+          additionalProperties: true
+        issues:
+          type: array
+          description: Field-level validation problems (invalid_request only).
+          items:
+            type: object
+    Video_2:
+      type: object
+      description: 'One row of a listing. `url` is accepted as-is by the transcript and batch endpoints. The platform is not repeated per row: the page''s `platform` says it.'
+      properties:
+        videoId:
+          type: string
+        url:
+          type: string
+          format: uri
+        title:
+          type: string
+        duration:
+          type:
+          - number
+          - 'null'
+          description: Seconds, when the source reports it.
+        channel:
+          type:
+          - string
+          - 'null'
+        publishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Upload time. Exact for TikTok, Instagram and podcasts; approximate on YouTube, whose listings only say "2 days ago", so it is exact to the day for recent videos and up to a year off for old ones.
+        stats:
+          type:
+          - object
+          - 'null'
+          description: Engagement counts where the source exposes them.
+          properties:
+            plays:
+              type:
+              - integer
+              - 'null'
+    TranscriptData_2:
+      type: object
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - transcript
+        video_id:
+          type: string
+        title:
+          type:
+          - string
+          - 'null'
+        source:
+          type: string
+          enum:
+          - captions
+          - audio
+          description: 'Where the words came from: an existing caption track, or AI transcription of the audio (billed by length, see usage.credits_spent).'
+        thumbnailUrl:
+          type:
+          - string
+          - 'null'
+          description: Poster image for the video. TikTok and Instagram serve signed, expiring URLs, so copy the image rather than hotlinking it.
+        diarized:
+          type: boolean
+          description: True when speaker diarization produced labels (podcast transcriptions only); segments then carry `speaker` ids.
+        text:
+          type:
+          - string
+          - 'null'
+        segments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Segment'
+        podcast:
+          type: object
+          description: Present only when the input was a podcast link. Spotify and Apple do not host podcast audio; both read the publisher's RSS feed, so the link is resolved to that feed and the episode's own audio file. These fields say which show and episode were matched, so you can verify the resolution was correct.
+          properties:
+            show:
+              type:
+              - string
+              - 'null'
+            episode:
+              type:
+              - string
+              - 'null'
+            published_at:
+              type:
+              - string
+              - 'null'
+              format: date-time
+            feed_url:
+              type:
+              - string
+              - 'null'
+              format: uri
+            audio_url:
+              type: string
+              format: uri
+            resolved_via:
+              type: string
+              enum:
+              - spotify
+              - apple
+              - rss
+              - direct
+    ErrorEnvelope_2:
+      type: object
+      required:
+      - ok
+      - request_id
+      - error
+      properties:
+        ok:
+          type: boolean
+          enum:
+          - false
+        request_id:
+          type: string
+        error:
+          $ref: '#/components/schemas/ErrorBlock'
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'Send your API key as `Authorization: Bearer <key>`.'
+externalDocs:
+  description: Documentation
+  url: https://transcriptfetch.com/docs
+x-refined-from:
+- transcriptfetch-api-v1-openapi.json
+- transcriptfetch-api-v2-openapi.json
