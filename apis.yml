@@ -61,7 +61,6 @@ apis:
   name: TranscriptFetch System API
   description: Service health and metadata
   humanURL: https://transcriptfetch.com/docs/api-reference
-  baseURL: https://transcriptfetch.com
   tags:
   - System
   properties:
@@ -87,7 +86,6 @@ apis:
   name: TranscriptFetch Transcripts API
   description: Transcript and video-list endpoints
   humanURL: https://transcriptfetch.com/docs/api-reference
-  baseURL: https://transcriptfetch.com
   tags:
   - Transcripts
   properties:
