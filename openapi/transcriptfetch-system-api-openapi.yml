@@ -144,6 +144,117 @@ paths:
       description: Production
 components:
   schemas:
+    AiFallback:
+      type: object
+      description: Attached to transcript failures. Distinguishes 'this video has no captions' from 'we could not check', and says whether transcribing the audio would still work.
+      required:
+      - available
+      - captions_unavailable
+      - message
+      properties:
+        available:
+          type: boolean
+          description: True when retrying the same request with ai_fallback:true would actually start a transcription.
+        captions_unavailable:
+          type: boolean
+          description: True only when we reached the video and confirmed no caption track exists. False means we could not check, NOT that captions exist.
+        unavailable_reason:
+          type: string
+          enum:
+          - unsupported_input
+          - no_speech_to_transcribe
+          - content_inaccessible
+          - retry_captions_first
+          - insufficient_credits
+          description: 'Present when available is false: why AI transcription cannot be used.'
+        message:
+          type: string
+        retry_with:
+          type: object
+          description: Merge into the original request body to trigger the fallback.
+          properties:
+            ai_fallback:
+              type: boolean
+              enum:
+              - true
+        cost_credits:
+          type: integer
+          description: Credits charged on successful delivery. Failures are free. AI transcription bills by audio length, so this is an estimate from the measured media length when cost_estimated is true, and otherwise the one-block minimum.
+        cost_estimated:
+          type: boolean
+          description: True when cost_credits came from the media's real duration; false when it is only the minimum, because the length was not known at that point.
+        balance:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance; null for admins.
+    SuccessEnvelope:
+      type: object
+      required:
+      - ok
+      - request_id
+      - data
+      - usage
+      properties:
+        ok:
+          type: boolean
+          enum:
+          - true
+        request_id:
+          type: string
+        data:
+          oneOf:
+          - $ref: '#/components/schemas/TranscriptData'
+          - $ref: '#/components/schemas/VideoListData'
+          - $ref: '#/components/schemas/MeData'
+          discriminator:
+            propertyName: kind
+        usage:
+          $ref: '#/components/schemas/Usage'
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+        service:
+          type: string
+        version:
+          type: string
+        time:
+          type: string
+          format: date-time
+    MeData:
+      type: object
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - me
+        user_id:
+          type: string
+        credits:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance, or null for unlimited (admin) accounts.
+    Segment:
+      type: object
+      properties:
+        start:
+          type: number
+          description: Start time in seconds.
+        duration:
+          type: number
+          description: Cue duration in seconds.
+        text:
+          type: string
+        speaker:
+          type: integer
+          description: Speaker id (0, 1, …) on diarized podcast transcripts only; absent everywhere else.
     TranscriptData:
       type: object
       required:
@@ -209,166 +320,6 @@ components:
               - apple
               - rss
               - direct
-    AiFallback:
-      type: object
-      description: Attached to transcript failures. Distinguishes 'this video has no captions' from 'we could not check', and says whether transcribing the audio would still work.
-      required:
-      - available
-      - captions_unavailable
-      - message
-      properties:
-        available:
-          type: boolean
-          description: True when retrying the same request with ai_fallback:true would actually start a transcription.
-        captions_unavailable:
-          type: boolean
-          description: True only when we reached the video and confirmed no caption track exists. False means we could not check, NOT that captions exist.
-        unavailable_reason:
-          type: string
-          enum:
-          - unsupported_input
-          - no_speech_to_transcribe
-          - content_inaccessible
-          - retry_captions_first
-          - insufficient_credits
-          description: 'Present when available is false: why AI transcription cannot be used.'
-        message:
-          type: string
-        retry_with:
-          type: object
-          description: Merge into the original request body to trigger the fallback.
-          properties:
-            ai_fallback:
-              type: boolean
-              enum:
-              - true
-        cost_credits:
-          type: integer
-          description: Credits charged on successful delivery. Failures are free. AI transcription bills by audio length, so this is an estimate from the measured media length when cost_estimated is true, and otherwise the one-block minimum.
-        cost_estimated:
-          type: boolean
-          description: True when cost_credits came from the media's real duration; false when it is only the minimum, because the length was not known at that point.
-        balance:
-          type:
-          - integer
-          - 'null'
-          description: Remaining balance; null for admins.
-    Health:
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-          - ok
-        service:
-          type: string
-        version:
-          type: string
-        time:
-          type: string
-          format: date-time
-    Video:
-      type: object
-      properties:
-        videoId:
-          type: string
-        title:
-          type: string
-        thumbnailUrl:
-          type: string
-        duration:
-          type:
-          - number
-          - 'null'
-        channel:
-          type:
-          - string
-          - 'null'
-    SuccessEnvelope:
-      type: object
-      required:
-      - ok
-      - request_id
-      - data
-      - usage
-      properties:
-        ok:
-          type: boolean
-          enum:
-          - true
-        request_id:
-          type: string
-        data:
-          oneOf:
-          - $ref: '#/components/schemas/TranscriptData'
-          - $ref: '#/components/schemas/VideoListData'
-          - $ref: '#/components/schemas/MeData'
-          discriminator:
-            propertyName: kind
-        usage:
-          $ref: '#/components/schemas/Usage'
-    MeData:
-      type: object
-      required:
-      - kind
-      properties:
-        kind:
-          type: string
-          enum:
-          - me
-        user_id:
-          type: string
-        credits:
-          type:
-          - integer
-          - 'null'
-          description: Remaining balance, or null for unlimited (admin) accounts.
-    VideoListData:
-      type: object
-      required:
-      - kind
-      properties:
-        kind:
-          type: string
-          enum:
-          - video_list
-        source:
-          type: string
-        videos:
-          type: array
-          items:
-            $ref: '#/components/schemas/Video'
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Pass back as `cursor` for the next page; null when exhausted.
-    Segment:
-      type: object
-      properties:
-        start:
-          type: number
-          description: Start time in seconds.
-        duration:
-          type: number
-          description: Cue duration in seconds.
-        text:
-          type: string
-        speaker:
-          type: integer
-          description: Speaker id (0, 1, …) on diarized podcast transcripts only; absent everywhere else.
-    Usage:
-      type: object
-      properties:
-        credits_spent:
-          type: integer
-        balance:
-          type:
-          - integer
-          - 'null'
-          description: Remaining balance, or null for unlimited (admin) accounts.
-        bytes:
-          type: integer
     ErrorEnvelope:
       type: object
       required:
@@ -434,7 +385,36 @@ components:
           description: Structured failure reason on transcript endpoints (no_captions, captions_disabled, age_restricted, rate_limited, …).
         ai_fallback:
           $ref: '#/components/schemas/AiFallback'
-    TranscriptData_2:
+    Video:
+      type: object
+      properties:
+        videoId:
+          type: string
+        title:
+          type: string
+        thumbnailUrl:
+          type: string
+        duration:
+          type:
+          - number
+          - 'null'
+        channel:
+          type:
+          - string
+          - 'null'
+    Usage:
+      type: object
+      properties:
+        credits_spent:
+          type: integer
+        balance:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance, or null for unlimited (admin) accounts.
+        bytes:
+          type: integer
+    VideoListData:
       type: object
       required:
       - kind
@@ -442,105 +422,18 @@ components:
         kind:
           type: string
           enum:
-          - transcript
-        video_id:
-          type: string
-        title:
-          type:
-          - string
-          - 'null'
+          - video_list
         source:
           type: string
-          enum:
-          - captions
-          - audio
-          description: 'Where the words came from: an existing caption track, or AI transcription of the audio (billed by length, see usage.credits_spent).'
-        thumbnailUrl:
-          type:
-          - string
-          - 'null'
-          description: Poster image for the video. TikTok and Instagram serve signed, expiring URLs, so copy the image rather than hotlinking it.
-        diarized:
-          type: boolean
-          description: True when speaker diarization produced labels (podcast transcriptions only); segments then carry `speaker` ids.
-        text:
-          type:
-          - string
-          - 'null'
-        segments:
-          type:
-          - array
-          - 'null'
+        videos:
+          type: array
           items:
-            $ref: '#/components/schemas/Segment'
-        podcast:
-          type: object
-          description: Present only when the input was a podcast link. Spotify and Apple do not host podcast audio; both read the publisher's RSS feed, so the link is resolved to that feed and the episode's own audio file. These fields say which show and episode were matched, so you can verify the resolution was correct.
-          properties:
-            show:
-              type:
-              - string
-              - 'null'
-            episode:
-              type:
-              - string
-              - 'null'
-            published_at:
-              type:
-              - string
-              - 'null'
-              format: date-time
-            feed_url:
-              type:
-              - string
-              - 'null'
-              format: uri
-            audio_url:
-              type: string
-              format: uri
-            resolved_via:
-              type: string
-              enum:
-              - spotify
-              - apple
-              - rss
-              - direct
-    Video_2:
-      type: object
-      description: 'One row of a listing. `url` is accepted as-is by the transcript and batch endpoints. The platform is not repeated per row: the page''s `platform` says it.'
-      properties:
-        videoId:
-          type: string
-        url:
-          type: string
-          format: uri
-        title:
-          type: string
-        duration:
-          type:
-          - number
-          - 'null'
-          description: Seconds, when the source reports it.
-        channel:
+            $ref: '#/components/schemas/Video'
+        next_cursor:
           type:
           - string
           - 'null'
-        publishedAt:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: Upload time. Exact for TikTok, Instagram and podcasts; approximate on YouTube, whose listings only say "2 days ago", so it is exact to the day for recent videos and up to a year off for old ones.
-        stats:
-          type:
-          - object
-          - 'null'
-          description: Engagement counts where the source exposes them.
-          properties:
-            plays:
-              type:
-              - integer
-              - 'null'
+          description: Pass back as `cursor` for the next page; null when exhausted.
     ErrorBlock:
       type: object
       required:
@@ -644,6 +537,128 @@ components:
           description: Field-level validation problems (invalid_request only).
           items:
             type: object
+    TranscriptData_2:
+      type: object
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - transcript
+        video_id:
+          type: string
+        title:
+          type:
+          - string
+          - 'null'
+        source:
+          type: string
+          enum:
+          - captions
+          - audio
+          description: 'Where the words came from: an existing caption track, or AI transcription of the audio (billed by length, see usage.credits_spent).'
+        thumbnailUrl:
+          type:
+          - string
+          - 'null'
+          description: Poster image for the video. TikTok and Instagram serve signed, expiring URLs, so copy the image rather than hotlinking it.
+        diarized:
+          type: boolean
+          description: True when speaker diarization produced labels (podcast transcriptions only); segments then carry `speaker` ids.
+        text:
+          type:
+          - string
+          - 'null'
+        segments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Segment'
+        podcast:
+          type: object
+          description: Present only when the input was a podcast link. Spotify and Apple do not host podcast audio; both read the publisher's RSS feed, so the link is resolved to that feed and the episode's own audio file. These fields say which show and episode were matched, so you can verify the resolution was correct.
+          properties:
+            show:
+              type:
+              - string
+              - 'null'
+            episode:
+              type:
+              - string
+              - 'null'
+            published_at:
+              type:
+              - string
+              - 'null'
+              format: date-time
+            feed_url:
+              type:
+              - string
+              - 'null'
+              format: uri
+            audio_url:
+              type: string
+              format: uri
+            resolved_via:
+              type: string
+              enum:
+              - spotify
+              - apple
+              - rss
+              - direct
+    ErrorEnvelope_2:
+      type: object
+      required:
+      - ok
+      - request_id
+      - error
+      properties:
+        ok:
+          type: boolean
+          enum:
+          - false
+        request_id:
+          type: string
+        error:
+          $ref: '#/components/schemas/ErrorBlock'
+    Video_2:
+      type: object
+      description: 'One row of a listing. `url` is accepted as-is by the transcript and batch endpoints. The platform is not repeated per row: the page''s `platform` says it.'
+      properties:
+        videoId:
+          type: string
+        url:
+          type: string
+          format: uri
+        title:
+          type: string
+        duration:
+          type:
+          - number
+          - 'null'
+          description: Seconds, when the source reports it.
+        channel:
+          type:
+          - string
+          - 'null'
+        publishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Upload time. Exact for TikTok, Instagram and podcasts; approximate on YouTube, whose listings only say "2 days ago", so it is exact to the day for recent videos and up to a year off for old ones.
+        stats:
+          type:
+          - object
+          - 'null'
+          description: Engagement counts where the source exposes them.
+          properties:
+            plays:
+              type:
+              - integer
+              - 'null'
     VideoListData_2:
       type: object
       required:
@@ -675,21 +690,6 @@ components:
           - string
           - 'null'
           description: Pass back as `cursor` for the next page; null when exhausted.
-    ErrorEnvelope_2:
-      type: object
-      required:
-      - ok
-      - request_id
-      - error
-      properties:
-        ok:
-          type: boolean
-          enum:
-          - false
-        request_id:
-          type: string
-        error:
-          $ref: '#/components/schemas/ErrorBlock'
   responses:
     Error:
       description: Error

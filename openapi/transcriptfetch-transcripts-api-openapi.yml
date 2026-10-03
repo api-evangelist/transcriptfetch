@@ -862,23 +862,6 @@ paths:
       description: Production
 components:
   schemas:
-    Video:
-      type: object
-      properties:
-        videoId:
-          type: string
-        title:
-          type: string
-        thumbnailUrl:
-          type: string
-        duration:
-          type:
-          - number
-          - 'null'
-        channel:
-          type:
-          - string
-          - 'null'
     SuccessEnvelope:
       type: object
       required:
@@ -902,462 +885,6 @@ components:
             propertyName: kind
         usage:
           $ref: '#/components/schemas/Usage'
-    MeData:
-      type: object
-      required:
-      - kind
-      properties:
-        kind:
-          type: string
-          enum:
-          - me
-        user_id:
-          type: string
-        credits:
-          type:
-          - integer
-          - 'null'
-          description: Remaining balance, or null for unlimited (admin) accounts.
-    BatchResult:
-      type: object
-      properties:
-        video_id:
-          type: string
-        outcome:
-          type:
-          - string
-          - 'null'
-          enum:
-          - ok
-          - no_transcript
-          - processing
-          - error
-          - null
-        reason:
-          type:
-          - string
-          - 'null'
-          description: Structured failure reason (no_captions, unavailable, upstream_error, …); null on success.
-        job_id:
-          type:
-          - string
-          - 'null'
-          description: 'Set on outcome "processing": the audio-transcription job started for a captionless entry. Re-send the batch later or poll poll_url.'
-        poll_url:
-          type:
-          - string
-          - 'null'
-          description: 'Set on outcome "processing": path to poll for the finished transcript.'
-        message:
-          type:
-          - string
-          - 'null'
-          description: Human-readable explanation of the failure; null on success.
-        title:
-          type:
-          - string
-          - 'null'
-        text:
-          type:
-          - string
-          - 'null'
-        segments:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Segment'
-        bytes:
-          type: integer
-    VideoListData:
-      type: object
-      required:
-      - kind
-      properties:
-        kind:
-          type: string
-          enum:
-          - video_list
-        source:
-          type: string
-        videos:
-          type: array
-          items:
-            $ref: '#/components/schemas/Video'
-        next_cursor:
-          type:
-          - string
-          - 'null'
-          description: Pass back as `cursor` for the next page; null when exhausted.
-    BatchEnvelope:
-      type: object
-      required:
-      - ok
-      - request_id
-      - data
-      - usage
-      properties:
-        ok:
-          type: boolean
-          enum:
-          - true
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            kind:
-              type: string
-              enum:
-              - transcript_batch
-            results:
-              type: array
-              items:
-                $ref: '#/components/schemas/BatchResult'
-        usage:
-          $ref: '#/components/schemas/Usage'
-    BatchRequest:
-      type: object
-      required:
-      - video_ids
-      properties:
-        video_ids:
-          type: array
-          minItems: 1
-          maxItems: 500
-          items:
-            type: string
-            minLength: 1
-            maxLength: 200
-          description: 'Video URLs or bare YouTube IDs, from any supported platform. Up to your plan''s batch cap: 50 on free/Basic/Pro, 500 on Mega/Scale. Also accepted as the legacy key videoIds (send one or the other, not both).'
-        mode:
-          type: string
-          enum:
-          - auto
-          - captions
-          description: 'Where each entry''s text may come from. "auto" (the default) reads captions and transcribes the audio when there are none. "captions" reads an existing caption track only, so a captionless video fails as no_transcript - the behaviour batch had before audio fallback existed. Note "audio" is not accepted here: skipping captions for 50 videos at once is a job queue, not a batch fetch.'
-    TranscriptJobData:
-      type: object
-      required:
-      - kind
-      description: 'Placeholder data block on a 202: identifies what is being transcribed while the job runs.'
-      properties:
-        kind:
-          type: string
-          enum:
-          - transcript_job
-        video_id:
-          type: string
-        platform:
-          type: string
-    AiFallback:
-      type: object
-      description: Attached to transcript failures. Distinguishes 'this video has no captions' from 'we could not check', and says whether transcribing the audio would still work.
-      required:
-      - available
-      - captions_unavailable
-      - message
-      properties:
-        available:
-          type: boolean
-          description: True when retrying the same request with ai_fallback:true would actually start a transcription.
-        captions_unavailable:
-          type: boolean
-          description: True only when we reached the video and confirmed no caption track exists. False means we could not check, NOT that captions exist.
-        unavailable_reason:
-          type: string
-          enum:
-          - unsupported_input
-          - no_speech_to_transcribe
-          - content_inaccessible
-          - retry_captions_first
-          - insufficient_credits
-          description: 'Present when available is false: why AI transcription cannot be used.'
-        message:
-          type: string
-        retry_with:
-          type: object
-          description: Merge into the original request body to trigger the fallback.
-          properties:
-            ai_fallback:
-              type: boolean
-              enum:
-              - true
-        cost_credits:
-          type: integer
-          description: Credits charged on successful delivery. Failures are free. AI transcription bills by audio length, so this is an estimate from the measured media length when cost_estimated is true, and otherwise the one-block minimum.
-        cost_estimated:
-          type: boolean
-          description: True when cost_credits came from the media's real duration; false when it is only the minimum, because the length was not known at that point.
-        balance:
-          type:
-          - integer
-          - 'null'
-          description: Remaining balance; null for admins.
-    Usage:
-      type: object
-      properties:
-        credits_spent:
-          type: integer
-        balance:
-          type:
-          - integer
-          - 'null'
-          description: Remaining balance, or null for unlimited (admin) accounts.
-        bytes:
-          type: integer
-    ChannelRequest:
-      type: object
-      required:
-      - channel
-      properties:
-        channel:
-          type: string
-          minLength: 1
-          maxLength: 2000
-          description: Channel @handle, /channel/UC… URL, or UC… ID.
-        limit:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 5
-          description: Max videos to return per page. Defaults to 5.
-        cursor:
-          type: string
-          maxLength: 256
-          description: Opaque pagination cursor from a previous response's next_cursor (max 256 characters). Omit for the first page. Cursors encode a list offset capped at 2000, so pagination cannot reach past the first 2000 items.
-        since_video_id:
-          type: string
-          minLength: 1
-          maxLength: 2000
-          description: Newest video ID you have already seen. The response is trimmed to videos newer than it, and a page with nothing newer costs no credits - so you can poll a channel for new uploads for free.
-    TranscriptData:
-      type: object
-      required:
-      - kind
-      properties:
-        kind:
-          type: string
-          enum:
-          - transcript
-        video_id:
-          type: string
-        title:
-          type:
-          - string
-          - 'null'
-        thumbnailUrl:
-          type:
-          - string
-          - 'null'
-          description: Poster image for the video. TikTok and Instagram serve signed, expiring URLs, so copy the image rather than hotlinking it.
-        diarized:
-          type: boolean
-          description: True when speaker diarization produced labels (podcast transcriptions only); segments then carry `speaker` ids.
-        text:
-          type:
-          - string
-          - 'null'
-        segments:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Segment'
-        podcast:
-          type: object
-          description: Present only when the input was a podcast link. Spotify and Apple do not host podcast audio; both read the publisher's RSS feed, so the link is resolved to that feed and the episode's own audio file. These fields say which show and episode were matched, so you can verify the resolution was correct.
-          properties:
-            show:
-              type:
-              - string
-              - 'null'
-            episode:
-              type:
-              - string
-              - 'null'
-            published_at:
-              type:
-              - string
-              - 'null'
-              format: date-time
-            feed_url:
-              type:
-              - string
-              - 'null'
-              format: uri
-            audio_url:
-              type: string
-              format: uri
-            resolved_via:
-              type: string
-              enum:
-              - spotify
-              - apple
-              - rss
-              - direct
-    JobAcceptedEnvelope:
-      type: object
-      required:
-      - ok
-      - request_id
-      - status
-      - job_id
-      - poll_url
-      description: Returned with HTTP 202 when a request escalates to audio transcription. Poll poll_url (or wait for the callback_url delivery); credits are charged on delivery, not here.
-      properties:
-        ok:
-          type: boolean
-          enum:
-          - true
-        request_id:
-          type: string
-        status:
-          type: string
-          enum:
-          - processing
-        job_id:
-          type: string
-        poll_url:
-          type: string
-          description: Path of the job endpoint to poll.
-        data:
-          description: Either a transcript_job placeholder, or a transcript block with null text/segments, depending on how the request escalated.
-          oneOf:
-          - $ref: '#/components/schemas/TranscriptJobData'
-          - $ref: '#/components/schemas/TranscriptData'
-        ai_fallback:
-          type: object
-          description: Why transcription engaged and what delivery will cost, e.g. {engaged, captions_unavailable, message, cost_credits}.
-        usage:
-          $ref: '#/components/schemas/Usage'
-    VideoRequest:
-      type: object
-      required:
-      - video
-      properties:
-        video:
-          type: string
-          minLength: 1
-          maxLength: 2000
-          description: 'A video URL or 11-character YouTube video ID. Accepts YouTube (watch, youtu.be, /shorts/), TikTok, and Instagram URLs, plus direct media file URLs (mp4/mp3/wav/…). Also accepts podcast links: a Spotify or Apple Podcasts episode URL, or a podcast RSS feed URL, which is resolved to that episode''s audio automatically. Videos without captions fall back to AI transcription.'
-        mode:
-          type: string
-          enum:
-          - captions
-          - audio
-          - auto
-          default: auto
-          description: 'Where the text may come from. "captions" reads an existing caption track and fails if there is none, which is the only way to avoid audio transcription. "audio" skips captions and transcribes the audio. "auto" (the default) tries captions first and transcribes the audio when there are none. Short media may finish inline after a wait of up to 45 seconds; longer work returns 202 with a job to poll or deliver by callback. Audio is charged only on delivery: 1 credit per started minute of audio, minimum 1 (a 20-minute video is 20; the 4-hour cap is 240). Caption fetches are always 1 credit.'
-        timestamps:
-          default: true
-          oneOf:
-          - type: boolean
-          - type: string
-            enum:
-            - none
-            - segment
-          description: Which form the transcript comes back in. true (the default) returns the `segments` array, each with start, duration and text (podcast episodes transcribed from audio may also carry a `speaker` id per segment - see the podcast notes). false returns a single joined `text` string instead. On the single-transcript 200 exactly one of the two is present, never both, since segments already contain every word the joined text does; job results and batch entries carry both text and segments. The older strings "segment" and "none" mean the same two things and are still accepted.
-        callback_url:
-          type: string
-          format: uri
-          maxLength: 2000
-          description: 'Where to POST the finished transcript when a request escalates to audio transcription, instead of polling the job. The delivery body is a trimmed envelope - {ok, status, job_id, data} on success, {ok, status, job_id, error} on failure - without the usage and request_id the poll URL adds. When a signing secret is configured on our side, the body is signed with HMAC-SHA256 over the exact bytes and sent as an X-TranscriptFetch-Signature: sha256=<hex> header so you can verify it came from us. Must be a public https URL on the standard port; the URL is checked again at delivery time, so an unreachable or private address still gets a 202 but never receives a delivery. The job stays pollable either way, so a missed delivery is never a lost transcript.'
-        ai_fallback:
-          type: boolean
-          default: false
-          deprecated: true
-          description: 'Legacy alias for "mode", still supported. true is identical to "mode": "audio"; omitted or false is "mode": "auto". Send one or the other, not both. Note that false never disabled the fallback - audio was still transcribed when no captions existed - which is why the field was replaced.'
-    SearchRequest:
-      type: object
-      required:
-      - query
-      properties:
-        query:
-          type: string
-          minLength: 1
-          maxLength: 2000
-          description: Keyword search query.
-        limit:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 5
-          description: Max videos to return per page. Defaults to 5.
-        cursor:
-          type: string
-          maxLength: 256
-          description: Opaque pagination cursor from a previous response's next_cursor (max 256 characters). Omit for the first page. Cursors encode a list offset capped at 2000, so pagination cannot reach past the first 2000 items.
-    PlaylistRequest:
-      type: object
-      required:
-      - playlist
-      properties:
-        playlist:
-          type: string
-          minLength: 1
-          maxLength: 2000
-          description: Playlist URL or playlist ID.
-        limit:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 5
-          description: Max videos to return per page. Defaults to 5.
-        cursor:
-          type: string
-          maxLength: 256
-          description: Opaque pagination cursor from a previous response's next_cursor (max 256 characters). Omit for the first page. Cursors encode a list offset capped at 2000, so pagination cannot reach past the first 2000 items.
-    JobStatusEnvelope:
-      type: object
-      required:
-      - ok
-      - request_id
-      - status
-      - job_id
-      description: Response of the job poll endpoint. data holds the transcript once status is completed and is null while processing (usage is absent then); a failed job has ok:false and an error block instead.
-      properties:
-        ok:
-          type: boolean
-        request_id:
-          type: string
-        status:
-          type: string
-          enum:
-          - processing
-          - completed
-          - failed
-        job_id:
-          type: string
-        data:
-          description: The finished transcript; null until the job completes.
-          oneOf:
-          - $ref: '#/components/schemas/TranscriptData'
-          - type: 'null'
-        usage:
-          $ref: '#/components/schemas/Usage'
-        error:
-          type: object
-          description: Present when status is failed.
-          properties:
-            code:
-              type: string
-            message:
-              type: string
-    Segment:
-      type: object
-      properties:
-        start:
-          type: number
-          description: Start time in seconds.
-        duration:
-          type: number
-          description: Cue duration in seconds.
-        text:
-          type: string
-        speaker:
-          type: integer
-          description: Speaker id (0, 1, …) on diarized podcast transcripts only; absent everywhere else.
     ErrorEnvelope:
       type: object
       required:
@@ -1423,92 +950,59 @@ components:
           description: Structured failure reason on transcript endpoints (no_captions, captions_disabled, age_restricted, rate_limited, …).
         ai_fallback:
           $ref: '#/components/schemas/AiFallback'
-    Video_2:
-      type: object
-      description: 'One row of a listing. `url` is accepted as-is by the transcript and batch endpoints. The platform is not repeated per row: the page''s `platform` says it.'
-      properties:
-        videoId:
-          type: string
-        url:
-          type: string
-          format: uri
-        title:
-          type: string
-        duration:
-          type:
-          - number
-          - 'null'
-          description: Seconds, when the source reports it.
-        channel:
-          type:
-          - string
-          - 'null'
-        publishedAt:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: Upload time. Exact for TikTok, Instagram and podcasts; approximate on YouTube, whose listings only say "2 days ago", so it is exact to the day for recent videos and up to a year off for old ones.
-        stats:
-          type:
-          - object
-          - 'null'
-          description: Engagement counts where the source exposes them.
-          properties:
-            plays:
-              type:
-              - integer
-              - 'null'
-    BatchResult_2:
+    ChannelRequest:
       type: object
       required:
-      - video_id
-      - outcome
-      description: 'One entry per requested video. Exactly three outcomes: "ok" carries the transcript, "processing" carries the audio-transcription job to poll, "error" carries the same error block a request-level failure does.'
+      - channel
       properties:
-        video_id:
+        channel:
           type: string
-        outcome:
-          type: string
-          enum:
-          - ok
-          - processing
-          - error
-        title:
-          type:
-          - string
-          - 'null'
-          description: outcome "ok" only.
-        source:
-          type: string
-          enum:
-          - captions
-          - audio
-          description: outcome "ok" only.
-        text:
-          type:
-          - string
-          - 'null'
-          description: outcome "ok" only.
-        segments:
-          type:
-          - array
-          - 'null'
-          items:
-            $ref: '#/components/schemas/Segment'
-          description: outcome "ok" only.
-        bytes:
+          minLength: 1
+          maxLength: 2000
+          description: Channel @handle, /channel/UC… URL, or UC… ID.
+        limit:
           type: integer
-          description: outcome "ok" only.
-        job_id:
+          minimum: 1
+          maximum: 50
+          default: 5
+          description: Max videos to return per page. Defaults to 5.
+        cursor:
           type: string
-          description: 'outcome "processing" only: the audio-transcription job started for a captionless entry. Re-send the batch later or poll poll_url.'
-        poll_url:
+          maxLength: 256
+          description: Opaque pagination cursor from a previous response's next_cursor (max 256 characters). Omit for the first page. Cursors encode a list offset capped at 2000, so pagination cannot reach past the first 2000 items.
+        since_video_id:
           type: string
-          description: 'outcome "processing" only: path to poll for the finished transcript.'
-        error:
-          $ref: '#/components/schemas/ErrorBlock'
-    VideoListData_2:
+          minLength: 1
+          maxLength: 2000
+          description: Newest video ID you have already seen. The response is trimmed to videos newer than it, and a page with nothing newer costs no credits - so you can poll a channel for new uploads for free.
+    BatchEnvelope:
+      type: object
+      required:
+      - ok
+      - request_id
+      - data
+      - usage
+      properties:
+        ok:
+          type: boolean
+          enum:
+          - true
+        request_id:
+          type: string
+        data:
+          type: object
+          properties:
+            kind:
+              type: string
+              enum:
+              - transcript_batch
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/BatchResult'
+        usage:
+          $ref: '#/components/schemas/Usage'
+    VideoListData:
       type: object
       required:
       - kind
@@ -1519,27 +1013,281 @@ components:
           - video_list
         source:
           type: string
-          description: 'Which listing produced the page: channel, playlist or search.'
-        platform:
-          type: string
-          enum:
-          - youtube
-          - tiktok
-          - instagram
-          - spotify
-          - apple
-          - rss
-          description: 'Where the rows came from: the `platform` field on search, the platform detected from the URL on channel and playlist.'
         videos:
           type: array
           items:
-            $ref: '#/components/schemas/Video_2'
+            $ref: '#/components/schemas/Video'
         next_cursor:
           type:
           - string
           - 'null'
           description: Pass back as `cursor` for the next page; null when exhausted.
-    TranscriptData_2:
+    Segment:
+      type: object
+      properties:
+        start:
+          type: number
+          description: Start time in seconds.
+        duration:
+          type: number
+          description: Cue duration in seconds.
+        text:
+          type: string
+        speaker:
+          type: integer
+          description: Speaker id (0, 1, …) on diarized podcast transcripts only; absent everywhere else.
+    SearchRequest:
+      type: object
+      required:
+      - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Keyword search query.
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+          description: Max videos to return per page. Defaults to 5.
+        cursor:
+          type: string
+          maxLength: 256
+          description: Opaque pagination cursor from a previous response's next_cursor (max 256 characters). Omit for the first page. Cursors encode a list offset capped at 2000, so pagination cannot reach past the first 2000 items.
+    PlaylistRequest:
+      type: object
+      required:
+      - playlist
+      properties:
+        playlist:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Playlist URL or playlist ID.
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+          description: Max videos to return per page. Defaults to 5.
+        cursor:
+          type: string
+          maxLength: 256
+          description: Opaque pagination cursor from a previous response's next_cursor (max 256 characters). Omit for the first page. Cursors encode a list offset capped at 2000, so pagination cannot reach past the first 2000 items.
+    Video:
+      type: object
+      properties:
+        videoId:
+          type: string
+        title:
+          type: string
+        thumbnailUrl:
+          type: string
+        duration:
+          type:
+          - number
+          - 'null'
+        channel:
+          type:
+          - string
+          - 'null'
+    VideoRequest:
+      type: object
+      required:
+      - video
+      properties:
+        video:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: 'A video URL or 11-character YouTube video ID. Accepts YouTube (watch, youtu.be, /shorts/), TikTok, and Instagram URLs, plus direct media file URLs (mp4/mp3/wav/…). Also accepts podcast links: a Spotify or Apple Podcasts episode URL, or a podcast RSS feed URL, which is resolved to that episode''s audio automatically. Videos without captions fall back to AI transcription.'
+        mode:
+          type: string
+          enum:
+          - captions
+          - audio
+          - auto
+          default: auto
+          description: 'Where the text may come from. "captions" reads an existing caption track and fails if there is none, which is the only way to avoid audio transcription. "audio" skips captions and transcribes the audio. "auto" (the default) tries captions first and transcribes the audio when there are none. Short media may finish inline after a wait of up to 45 seconds; longer work returns 202 with a job to poll or deliver by callback. Audio is charged only on delivery: 1 credit per started minute of audio, minimum 1 (a 20-minute video is 20; the 4-hour cap is 240). Caption fetches are always 1 credit.'
+        timestamps:
+          default: true
+          oneOf:
+          - type: boolean
+          - type: string
+            enum:
+            - none
+            - segment
+          description: Which form the transcript comes back in. true (the default) returns the `segments` array, each with start, duration and text (podcast episodes transcribed from audio may also carry a `speaker` id per segment - see the podcast notes). false returns a single joined `text` string instead. On the single-transcript 200 exactly one of the two is present, never both, since segments already contain every word the joined text does; job results and batch entries carry both text and segments. The older strings "segment" and "none" mean the same two things and are still accepted.
+        callback_url:
+          type: string
+          format: uri
+          maxLength: 2000
+          description: 'Where to POST the finished transcript when a request escalates to audio transcription, instead of polling the job. The delivery body is a trimmed envelope - {ok, status, job_id, data} on success, {ok, status, job_id, error} on failure - without the usage and request_id the poll URL adds. When a signing secret is configured on our side, the body is signed with HMAC-SHA256 over the exact bytes and sent as an X-TranscriptFetch-Signature: sha256=<hex> header so you can verify it came from us. Must be a public https URL on the standard port; the URL is checked again at delivery time, so an unreachable or private address still gets a 202 but never receives a delivery. The job stays pollable either way, so a missed delivery is never a lost transcript.'
+        ai_fallback:
+          type: boolean
+          default: false
+          deprecated: true
+          description: 'Legacy alias for "mode", still supported. true is identical to "mode": "audio"; omitted or false is "mode": "auto". Send one or the other, not both. Note that false never disabled the fallback - audio was still transcribed when no captions existed - which is why the field was replaced.'
+    Usage:
+      type: object
+      properties:
+        credits_spent:
+          type: integer
+        balance:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance, or null for unlimited (admin) accounts.
+        bytes:
+          type: integer
+    AiFallback:
+      type: object
+      description: Attached to transcript failures. Distinguishes 'this video has no captions' from 'we could not check', and says whether transcribing the audio would still work.
+      required:
+      - available
+      - captions_unavailable
+      - message
+      properties:
+        available:
+          type: boolean
+          description: True when retrying the same request with ai_fallback:true would actually start a transcription.
+        captions_unavailable:
+          type: boolean
+          description: True only when we reached the video and confirmed no caption track exists. False means we could not check, NOT that captions exist.
+        unavailable_reason:
+          type: string
+          enum:
+          - unsupported_input
+          - no_speech_to_transcribe
+          - content_inaccessible
+          - retry_captions_first
+          - insufficient_credits
+          description: 'Present when available is false: why AI transcription cannot be used.'
+        message:
+          type: string
+        retry_with:
+          type: object
+          description: Merge into the original request body to trigger the fallback.
+          properties:
+            ai_fallback:
+              type: boolean
+              enum:
+              - true
+        cost_credits:
+          type: integer
+          description: Credits charged on successful delivery. Failures are free. AI transcription bills by audio length, so this is an estimate from the measured media length when cost_estimated is true, and otherwise the one-block minimum.
+        cost_estimated:
+          type: boolean
+          description: True when cost_credits came from the media's real duration; false when it is only the minimum, because the length was not known at that point.
+        balance:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance; null for admins.
+    MeData:
+      type: object
+      required:
+      - kind
+      properties:
+        kind:
+          type: string
+          enum:
+          - me
+        user_id:
+          type: string
+        credits:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance, or null for unlimited (admin) accounts.
+    JobAcceptedEnvelope:
+      type: object
+      required:
+      - ok
+      - request_id
+      - status
+      - job_id
+      - poll_url
+      description: Returned with HTTP 202 when a request escalates to audio transcription. Poll poll_url (or wait for the callback_url delivery); credits are charged on delivery, not here.
+      properties:
+        ok:
+          type: boolean
+          enum:
+          - true
+        request_id:
+          type: string
+        status:
+          type: string
+          enum:
+          - processing
+        job_id:
+          type: string
+        poll_url:
+          type: string
+          description: Path of the job endpoint to poll.
+        data:
+          description: Either a transcript_job placeholder, or a transcript block with null text/segments, depending on how the request escalated.
+          oneOf:
+          - $ref: '#/components/schemas/TranscriptJobData'
+          - $ref: '#/components/schemas/TranscriptData'
+        ai_fallback:
+          type: object
+          description: Why transcription engaged and what delivery will cost, e.g. {engaged, captions_unavailable, message, cost_credits}.
+        usage:
+          $ref: '#/components/schemas/Usage'
+    JobStatusEnvelope:
+      type: object
+      required:
+      - ok
+      - request_id
+      - status
+      - job_id
+      description: Response of the job poll endpoint. data holds the transcript once status is completed and is null while processing (usage is absent then); a failed job has ok:false and an error block instead.
+      properties:
+        ok:
+          type: boolean
+        request_id:
+          type: string
+        status:
+          type: string
+          enum:
+          - processing
+          - completed
+          - failed
+        job_id:
+          type: string
+        data:
+          description: The finished transcript; null until the job completes.
+          oneOf:
+          - $ref: '#/components/schemas/TranscriptData'
+          - type: 'null'
+        usage:
+          $ref: '#/components/schemas/Usage'
+        error:
+          type: object
+          description: Present when status is failed.
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+    TranscriptJobData:
+      type: object
+      required:
+      - kind
+      description: 'Placeholder data block on a 202: identifies what is being transcribed while the job runs.'
+      properties:
+        kind:
+          type: string
+          enum:
+          - transcript_job
+        video_id:
+          type: string
+        platform:
+          type: string
+    TranscriptData:
       type: object
       required:
       - kind
@@ -1554,12 +1302,6 @@ components:
           type:
           - string
           - 'null'
-        source:
-          type: string
-          enum:
-          - captions
-          - audio
-          description: 'Where the words came from: an existing caption track, or AI transcription of the audio (billed by length, see usage.credits_spent).'
         thumbnailUrl:
           type:
           - string
@@ -1610,6 +1352,92 @@ components:
               - apple
               - rss
               - direct
+    BatchResult:
+      type: object
+      properties:
+        video_id:
+          type: string
+        outcome:
+          type:
+          - string
+          - 'null'
+          enum:
+          - ok
+          - no_transcript
+          - processing
+          - error
+          - null
+        reason:
+          type:
+          - string
+          - 'null'
+          description: Structured failure reason (no_captions, unavailable, upstream_error, …); null on success.
+        job_id:
+          type:
+          - string
+          - 'null'
+          description: 'Set on outcome "processing": the audio-transcription job started for a captionless entry. Re-send the batch later or poll poll_url.'
+        poll_url:
+          type:
+          - string
+          - 'null'
+          description: 'Set on outcome "processing": path to poll for the finished transcript.'
+        message:
+          type:
+          - string
+          - 'null'
+          description: Human-readable explanation of the failure; null on success.
+        title:
+          type:
+          - string
+          - 'null'
+        text:
+          type:
+          - string
+          - 'null'
+        segments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Segment'
+        bytes:
+          type: integer
+    BatchRequest:
+      type: object
+      required:
+      - video_ids
+      properties:
+        video_ids:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items:
+            type: string
+            minLength: 1
+            maxLength: 200
+          description: 'Video URLs or bare YouTube IDs, from any supported platform. Up to your plan''s batch cap: 50 on free/Basic/Pro, 500 on Mega/Scale. Also accepted as the legacy key videoIds (send one or the other, not both).'
+        mode:
+          type: string
+          enum:
+          - auto
+          - captions
+          description: 'Where each entry''s text may come from. "auto" (the default) reads captions and transcribes the audio when there are none. "captions" reads an existing caption track only, so a captionless video fails as no_transcript - the behaviour batch had before audio fallback existed. Note "audio" is not accepted here: skipping captions for 50 videos at once is a job queue, not a batch fetch.'
+    ErrorEnvelope_2:
+      type: object
+      required:
+      - ok
+      - request_id
+      - error
+      properties:
+        ok:
+          type: boolean
+          enum:
+          - false
+        request_id:
+          type: string
+        error:
+          $ref: '#/components/schemas/ErrorBlock'
     ChannelRequest_2:
       type: object
       required:
@@ -1635,33 +1463,37 @@ components:
           minLength: 1
           maxLength: 2000
           description: Newest video ID you have already seen. The response is trimmed to videos newer than it, and a page with nothing newer costs no credits - so you can poll a channel for new uploads for free.
-    JobAcceptedEnvelope_2:
+    VideoListData_2:
       type: object
       required:
-      - ok
-      - request_id
-      - status
-      - job_id
-      - poll_url
-      description: Returned with HTTP 202 when a request escalates to audio transcription. Poll poll_url (or wait for the callback_url delivery); credits are charged on delivery, not here.
+      - kind
       properties:
-        ok:
-          type: boolean
-          enum:
-          - true
-        request_id:
-          type: string
-        status:
+        kind:
           type: string
           enum:
-          - processing
-        job_id:
+          - video_list
+        source:
           type: string
-        poll_url:
+          description: 'Which listing produced the page: channel, playlist or search.'
+        platform:
           type: string
-          description: Path of the job endpoint to poll.
-        data:
-          $ref: '#/components/schemas/TranscriptJobData'
+          enum:
+          - youtube
+          - tiktok
+          - instagram
+          - spotify
+          - apple
+          - rss
+          description: 'Where the rows came from: the `platform` field on search, the platform detected from the URL on channel and playlist.'
+        videos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Video_2'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+          description: Pass back as `cursor` for the next page; null when exhausted.
     SearchRequest_2:
       type: object
       required:
@@ -1693,6 +1525,62 @@ components:
           type: string
           maxLength: 256
           description: Opaque pagination cursor from a previous response's next_cursor (max 256 characters). Omit for the first page. Cursors are scoped to the listing (and, for search, the platform) that issued them. Offset-based sources cannot page past the first 2000 items.
+    PlaylistRequest_2:
+      type: object
+      required:
+      - playlist
+      properties:
+        playlist:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: 'YouTube: playlist URL or PL… ID. TikTok: playlist URL (tiktok.com/@user/playlist/name-id). Spotify: playlist URL (open.spotify.com/playlist/…).'
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+          description: Max videos to return per page. Defaults to 5.
+        cursor:
+          type: string
+          maxLength: 256
+          description: Opaque pagination cursor from a previous response's next_cursor (max 256 characters). Omit for the first page. Cursors are scoped to the listing (and, for search, the platform) that issued them. Offset-based sources cannot page past the first 2000 items.
+    Video_2:
+      type: object
+      description: 'One row of a listing. `url` is accepted as-is by the transcript and batch endpoints. The platform is not repeated per row: the page''s `platform` says it.'
+      properties:
+        videoId:
+          type: string
+        url:
+          type: string
+          format: uri
+        title:
+          type: string
+        duration:
+          type:
+          - number
+          - 'null'
+          description: Seconds, when the source reports it.
+        channel:
+          type:
+          - string
+          - 'null'
+        publishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Upload time. Exact for TikTok, Instagram and podcasts; approximate on YouTube, whose listings only say "2 days ago", so it is exact to the day for recent videos and up to a year off for old ones.
+        stats:
+          type:
+          - object
+          - 'null'
+          description: Engagement counts where the source exposes them.
+          properties:
+            plays:
+              type:
+              - integer
+              - 'null'
     ErrorBlock:
       type: object
       required:
@@ -1796,26 +1684,33 @@ components:
           description: Field-level validation problems (invalid_request only).
           items:
             type: object
-    PlaylistRequest_2:
+    JobAcceptedEnvelope_2:
       type: object
       required:
-      - playlist
+      - ok
+      - request_id
+      - status
+      - job_id
+      - poll_url
+      description: Returned with HTTP 202 when a request escalates to audio transcription. Poll poll_url (or wait for the callback_url delivery); credits are charged on delivery, not here.
       properties:
-        playlist:
+        ok:
+          type: boolean
+          enum:
+          - true
+        request_id:
           type: string
-          minLength: 1
-          maxLength: 2000
-          description: 'YouTube: playlist URL or PL… ID. TikTok: playlist URL (tiktok.com/@user/playlist/name-id). Spotify: playlist URL (open.spotify.com/playlist/…).'
-        limit:
-          type: integer
-          minimum: 1
-          maximum: 50
-          default: 5
-          description: Max videos to return per page. Defaults to 5.
-        cursor:
+        status:
           type: string
-          maxLength: 256
-          description: Opaque pagination cursor from a previous response's next_cursor (max 256 characters). Omit for the first page. Cursors are scoped to the listing (and, for search, the platform) that issued them. Offset-based sources cannot page past the first 2000 items.
+          enum:
+          - processing
+        job_id:
+          type: string
+        poll_url:
+          type: string
+          description: Path of the job endpoint to poll.
+        data:
+          $ref: '#/components/schemas/TranscriptJobData'
     JobStatusEnvelope_2:
       type: object
       required:
@@ -1846,21 +1741,133 @@ components:
           $ref: '#/components/schemas/Usage'
         error:
           $ref: '#/components/schemas/ErrorBlock'
-    ErrorEnvelope_2:
+    TranscriptData_2:
       type: object
       required:
-      - ok
-      - request_id
-      - error
+      - kind
       properties:
-        ok:
-          type: boolean
-          enum:
-          - false
-        request_id:
+        kind:
           type: string
+          enum:
+          - transcript
+        video_id:
+          type: string
+        title:
+          type:
+          - string
+          - 'null'
+        source:
+          type: string
+          enum:
+          - captions
+          - audio
+          description: 'Where the words came from: an existing caption track, or AI transcription of the audio (billed by length, see usage.credits_spent).'
+        thumbnailUrl:
+          type:
+          - string
+          - 'null'
+          description: Poster image for the video. TikTok and Instagram serve signed, expiring URLs, so copy the image rather than hotlinking it.
+        diarized:
+          type: boolean
+          description: True when speaker diarization produced labels (podcast transcriptions only); segments then carry `speaker` ids.
+        text:
+          type:
+          - string
+          - 'null'
+        segments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Segment'
+        podcast:
+          type: object
+          description: Present only when the input was a podcast link. Spotify and Apple do not host podcast audio; both read the publisher's RSS feed, so the link is resolved to that feed and the episode's own audio file. These fields say which show and episode were matched, so you can verify the resolution was correct.
+          properties:
+            show:
+              type:
+              - string
+              - 'null'
+            episode:
+              type:
+              - string
+              - 'null'
+            published_at:
+              type:
+              - string
+              - 'null'
+              format: date-time
+            feed_url:
+              type:
+              - string
+              - 'null'
+              format: uri
+            audio_url:
+              type: string
+              format: uri
+            resolved_via:
+              type: string
+              enum:
+              - spotify
+              - apple
+              - rss
+              - direct
+    BatchResult_2:
+      type: object
+      required:
+      - video_id
+      - outcome
+      description: 'One entry per requested video. Exactly three outcomes: "ok" carries the transcript, "processing" carries the audio-transcription job to poll, "error" carries the same error block a request-level failure does.'
+      properties:
+        video_id:
+          type: string
+        outcome:
+          type: string
+          enum:
+          - ok
+          - processing
+          - error
+        title:
+          type:
+          - string
+          - 'null'
+          description: outcome "ok" only.
+        source:
+          type: string
+          enum:
+          - captions
+          - audio
+          description: outcome "ok" only.
+        text:
+          type:
+          - string
+          - 'null'
+          description: outcome "ok" only.
+        segments:
+          type:
+          - array
+          - 'null'
+          items:
+            $ref: '#/components/schemas/Segment'
+          description: outcome "ok" only.
+        bytes:
+          type: integer
+          description: outcome "ok" only.
+        job_id:
+          type: string
+          description: 'outcome "processing" only: the audio-transcription job started for a captionless entry. Re-send the batch later or poll poll_url.'
+        poll_url:
+          type: string
+          description: 'outcome "processing" only: path to poll for the finished transcript.'
         error:
           $ref: '#/components/schemas/ErrorBlock'
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
   parameters:
     IdempotencyKey:
       name: Idempotency-Key
@@ -1870,13 +1877,6 @@ components:
       schema:
         type: string
         maxLength: 255
-  responses:
-    Error:
-      description: Error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorEnvelope'
   securitySchemes:
     bearerAuth:
       type: http
