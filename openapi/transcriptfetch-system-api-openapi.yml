@@ -144,117 +144,6 @@ paths:
       description: Production
 components:
   schemas:
-    AiFallback:
-      type: object
-      description: Attached to transcript failures. Distinguishes 'this video has no captions' from 'we could not check', and says whether transcribing the audio would still work.
-      required:
-      - available
-      - captions_unavailable
-      - message
-      properties:
-        available:
-          type: boolean
-          description: True when retrying the same request with ai_fallback:true would actually start a transcription.
-        captions_unavailable:
-          type: boolean
-          description: True only when we reached the video and confirmed no caption track exists. False means we could not check, NOT that captions exist.
-        unavailable_reason:
-          type: string
-          enum:
-          - unsupported_input
-          - no_speech_to_transcribe
-          - content_inaccessible
-          - retry_captions_first
-          - insufficient_credits
-          description: 'Present when available is false: why AI transcription cannot be used.'
-        message:
-          type: string
-        retry_with:
-          type: object
-          description: Merge into the original request body to trigger the fallback.
-          properties:
-            ai_fallback:
-              type: boolean
-              enum:
-              - true
-        cost_credits:
-          type: integer
-          description: Credits charged on successful delivery. Failures are free. AI transcription bills by audio length, so this is an estimate from the measured media length when cost_estimated is true, and otherwise the one-block minimum.
-        cost_estimated:
-          type: boolean
-          description: True when cost_credits came from the media's real duration; false when it is only the minimum, because the length was not known at that point.
-        balance:
-          type:
-          - integer
-          - 'null'
-          description: Remaining balance; null for admins.
-    SuccessEnvelope:
-      type: object
-      required:
-      - ok
-      - request_id
-      - data
-      - usage
-      properties:
-        ok:
-          type: boolean
-          enum:
-          - true
-        request_id:
-          type: string
-        data:
-          oneOf:
-          - $ref: '#/components/schemas/TranscriptData'
-          - $ref: '#/components/schemas/VideoListData'
-          - $ref: '#/components/schemas/MeData'
-          discriminator:
-            propertyName: kind
-        usage:
-          $ref: '#/components/schemas/Usage'
-    Health:
-      type: object
-      properties:
-        status:
-          type: string
-          enum:
-          - ok
-        service:
-          type: string
-        version:
-          type: string
-        time:
-          type: string
-          format: date-time
-    MeData:
-      type: object
-      required:
-      - kind
-      properties:
-        kind:
-          type: string
-          enum:
-          - me
-        user_id:
-          type: string
-        credits:
-          type:
-          - integer
-          - 'null'
-          description: Remaining balance, or null for unlimited (admin) accounts.
-    Segment:
-      type: object
-      properties:
-        start:
-          type: number
-          description: Start time in seconds.
-        duration:
-          type: number
-          description: Cue duration in seconds.
-        text:
-          type: string
-        speaker:
-          type: integer
-          description: Speaker id (0, 1, …) on diarized podcast transcripts only; absent everywhere else.
     TranscriptData:
       type: object
       required:
@@ -385,6 +274,34 @@ components:
           description: Structured failure reason on transcript endpoints (no_captions, captions_disabled, age_restricted, rate_limited, …).
         ai_fallback:
           $ref: '#/components/schemas/AiFallback'
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+        service:
+          type: string
+        version:
+          type: string
+        time:
+          type: string
+          format: date-time
+    Segment:
+      type: object
+      properties:
+        start:
+          type: number
+          description: Start time in seconds.
+        duration:
+          type: number
+          description: Cue duration in seconds.
+        text:
+          type: string
+        speaker:
+          type: integer
+          description: Speaker id (0, 1, …) on diarized podcast transcripts only; absent everywhere else.
     Video:
       type: object
       properties:
@@ -434,109 +351,89 @@ components:
           - string
           - 'null'
           description: Pass back as `cursor` for the next page; null when exhausted.
-    ErrorBlock:
+    MeData:
       type: object
       required:
-      - code
-      - number
-      - message
-      - docs
-      description: 'Every failure carries this block. Branch on code (a stable string) or number (a stable integer whose thousands digit is the family: 1 request, 2 account, 3 input, 4 content, 5 transient, 9 ours; 5xxx means retry with backoff). At most one of retry_with, details, issues is present. Failures are never charged.'
+      - kind
       properties:
-        code:
+        kind:
           type: string
           enum:
-          - invalid_request
-          - invalid_cursor
-          - unauthorized
-          - idempotency_conflict
-          - not_found
-          - insufficient_credits
-          - batch_too_large
-          - rate_limited
-          - unsupported_platform
-          - endpoint_platform_mismatch
-          - podcast_feed_not_found
-          - audio_ineligible
-          - invalid_input
-          - audio_too_long
-          - drm_protected
-          - private
-          - unavailable
-          - members_only
-          - age_restricted
-          - region_blocked
-          - live_stream
-          - was_live
-          - no_captions
-          - captions_disabled
-          - no_speech
-          - no_audio_stream
-          - upstream_error
-          - timeout
-          - connection
-          - proxy_unavailable
-          - parse_error
-          - upstream_unavailable
-          - internal_error
-          - unknown
-        number:
-          type: integer
+          - me
+        user_id:
+          type: string
+        credits:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance, or null for unlimited (admin) accounts.
+    SuccessEnvelope:
+      type: object
+      required:
+      - ok
+      - request_id
+      - data
+      - usage
+      properties:
+        ok:
+          type: boolean
           enum:
-          - 1001
-          - 1002
-          - 1101
-          - 1201
-          - 1301
-          - 2001
-          - 2002
-          - 2101
-          - 3001
-          - 3002
-          - 3003
-          - 3004
-          - 3005
-          - 3006
-          - 3007
-          - 4001
-          - 4002
-          - 4003
-          - 4004
-          - 4005
-          - 4101
-          - 4102
-          - 4103
-          - 4104
-          - 4105
-          - 4106
-          - 5001
-          - 5002
-          - 5003
-          - 5004
-          - 5005
-          - 5101
-          - 9001
-          - 9002
+          - true
+        request_id:
+          type: string
+        data:
+          oneOf:
+          - $ref: '#/components/schemas/TranscriptData'
+          - $ref: '#/components/schemas/VideoListData'
+          - $ref: '#/components/schemas/MeData'
+          discriminator:
+            propertyName: kind
+        usage:
+          $ref: '#/components/schemas/Usage'
+    AiFallback:
+      type: object
+      description: Attached to transcript failures. Distinguishes 'this video has no captions' from 'we could not check', and says whether transcribing the audio would still work.
+      required:
+      - available
+      - captions_unavailable
+      - message
+      properties:
+        available:
+          type: boolean
+          description: True when retrying the same request with ai_fallback:true would actually start a transcription.
+        captions_unavailable:
+          type: boolean
+          description: True only when we reached the video and confirmed no caption track exists. False means we could not check, NOT that captions exist.
+        unavailable_reason:
+          type: string
+          enum:
+          - unsupported_input
+          - no_speech_to_transcribe
+          - content_inaccessible
+          - retry_captions_first
+          - insufficient_credits
+          description: 'Present when available is false: why AI transcription cannot be used.'
         message:
           type: string
-          description: Prose for humans. Never parse it.
-        docs:
-          type: string
-          format: uri
-          description: https://transcriptfetch.com/docs/errors/<code>
         retry_with:
           type: object
-          description: 'Present when a different request would succeed: the fields to change, e.g. { "mode": "audio" } to transcribe a captionless video, or { "endpoint": "/api/v2/transcripts/video" } for a platform this endpoint does not list.'
-          additionalProperties: true
-        details:
-          type: object
-          description: 'Structured specifics for the few codes that document one: batch_too_large { max, sent }, podcast_feed_not_found { reason, candidates? }.'
-          additionalProperties: true
-        issues:
-          type: array
-          description: Field-level validation problems (invalid_request only).
-          items:
-            type: object
+          description: Merge into the original request body to trigger the fallback.
+          properties:
+            ai_fallback:
+              type: boolean
+              enum:
+              - true
+        cost_credits:
+          type: integer
+          description: Credits charged on successful delivery. Failures are free. AI transcription bills by audio length, so this is an estimate from the measured media length when cost_estimated is true, and otherwise the one-block minimum.
+        cost_estimated:
+          type: boolean
+          description: True when cost_credits came from the media's real duration; false when it is only the minimum, because the length was not known at that point.
+        balance:
+          type:
+          - integer
+          - 'null'
+          description: Remaining balance; null for admins.
     TranscriptData_2:
       type: object
       required:
@@ -690,6 +587,109 @@ components:
           - string
           - 'null'
           description: Pass back as `cursor` for the next page; null when exhausted.
+    ErrorBlock:
+      type: object
+      required:
+      - code
+      - number
+      - message
+      - docs
+      description: 'Every failure carries this block. Branch on code (a stable string) or number (a stable integer whose thousands digit is the family: 1 request, 2 account, 3 input, 4 content, 5 transient, 9 ours; 5xxx means retry with backoff). At most one of retry_with, details, issues is present. Failures are never charged.'
+      properties:
+        code:
+          type: string
+          enum:
+          - invalid_request
+          - invalid_cursor
+          - unauthorized
+          - idempotency_conflict
+          - not_found
+          - insufficient_credits
+          - batch_too_large
+          - rate_limited
+          - unsupported_platform
+          - endpoint_platform_mismatch
+          - podcast_feed_not_found
+          - audio_ineligible
+          - invalid_input
+          - audio_too_long
+          - drm_protected
+          - private
+          - unavailable
+          - members_only
+          - age_restricted
+          - region_blocked
+          - live_stream
+          - was_live
+          - no_captions
+          - captions_disabled
+          - no_speech
+          - no_audio_stream
+          - upstream_error
+          - timeout
+          - connection
+          - proxy_unavailable
+          - parse_error
+          - upstream_unavailable
+          - internal_error
+          - unknown
+        number:
+          type: integer
+          enum:
+          - 1001
+          - 1002
+          - 1101
+          - 1201
+          - 1301
+          - 2001
+          - 2002
+          - 2101
+          - 3001
+          - 3002
+          - 3003
+          - 3004
+          - 3005
+          - 3006
+          - 3007
+          - 4001
+          - 4002
+          - 4003
+          - 4004
+          - 4005
+          - 4101
+          - 4102
+          - 4103
+          - 4104
+          - 4105
+          - 4106
+          - 5001
+          - 5002
+          - 5003
+          - 5004
+          - 5005
+          - 5101
+          - 9001
+          - 9002
+        message:
+          type: string
+          description: Prose for humans. Never parse it.
+        docs:
+          type: string
+          format: uri
+          description: https://transcriptfetch.com/docs/errors/<code>
+        retry_with:
+          type: object
+          description: 'Present when a different request would succeed: the fields to change, e.g. { "mode": "audio" } to transcribe a captionless video, or { "endpoint": "/api/v2/transcripts/video" } for a platform this endpoint does not list.'
+          additionalProperties: true
+        details:
+          type: object
+          description: 'Structured specifics for the few codes that document one: batch_too_large { max, sent }, podcast_feed_not_found { reason, candidates? }.'
+          additionalProperties: true
+        issues:
+          type: array
+          description: Field-level validation problems (invalid_request only).
+          items:
+            type: object
   responses:
     Error:
       description: Error
