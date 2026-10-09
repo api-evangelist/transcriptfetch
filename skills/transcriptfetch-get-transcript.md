@@ -2,7 +2,7 @@
 name: transcriptfetch-get-transcript
 description: Fetch a timestamped transcript for a YouTube, TikTok, or Instagram video, a Spotify or Apple Podcasts episode, an RSS feed, or a direct media file, handling the async AI-transcription path.
 api: TranscriptFetch REST API v2
-operations: [fetchVideoTranscript, getTranscriptJob]
+operations: [postApiV2TranscriptsVideo, getApiV2TranscriptsJobsByJobId]
 generated: '2026-09-09'
 method: generated
 source: openapi/transcriptfetch-api-v2-openapi.json, https://transcriptfetch.com/docs/endpoints

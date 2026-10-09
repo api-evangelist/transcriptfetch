@@ -2,7 +2,7 @@
 name: transcriptfetch-monitor-channel
 description: Poll a YouTube channel, TikTok/Instagram profile, podcast show, or RSS feed for new uploads at zero cost, then transcribe only what is new.
 api: TranscriptFetch REST API v2
-operations: [fetchChannelVideos, fetchVideoTranscript]
+operations: [postApiV2TranscriptsChannel, postApiV2TranscriptsVideo]
 generated: '2026-09-09'
 method: generated
 source: openapi/transcriptfetch-api-v2-openapi.json, https://transcriptfetch.com/docs/pagination

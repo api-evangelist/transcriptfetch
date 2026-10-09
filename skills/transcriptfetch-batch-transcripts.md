@@ -2,7 +2,7 @@
 name: transcriptfetch-batch-transcripts
 description: Transcribe up to 500 videos in one request and handle the three per-item outcomes without over-billing.
 api: TranscriptFetch REST API v2
-operations: [fetchTranscriptsBatch, getTranscriptJob]
+operations: [postApiV2TranscriptsBatch, getApiV2TranscriptsJobsByJobId]
 generated: '2026-09-09'
 method: generated
 source: openapi/transcriptfetch-api-v2-openapi.json, https://transcriptfetch.com/docs/errors

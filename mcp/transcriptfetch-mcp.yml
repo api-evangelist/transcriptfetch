@@ -66,3 +66,23 @@ clients:
 - VS Code
 - Perplexity
 - Codex
+rfc9728:
+  endpoint: https://transcriptfetch.com/mcp
+  metadata_url: https://transcriptfetch.com/.well-known/oauth-protected-resource/mcp
+  discovered_via: WWW-Authenticate resource_metadata on an anonymous POST initialize
+  fetched: '2026-09-25'
+  http_status: 200
+  content_type: application/json
+  document:
+    resource: https://transcriptfetch.com/mcp
+    authorization_servers:
+    - https://clerk.transcriptfetch.com
+    scopes_supported:
+    - openid
+    - profile
+    - email
+    - offline_access
+    bearer_methods_supported:
+    - header
+    resource_name: TranscriptFetch
+    resource_documentation: https://transcriptfetch.com/docs/mcp
