@@ -19,6 +19,6 @@
     registered_name: com.transcriptfetch/youtube-transcripts
     register_id: com.transcriptfetch/youtube-transcripts
     detected_by: sweep-agent-tools.py
-    detected: '2026-10-14'
+    detected: '2026-10-15'
   status: not-a-workflow
   arazzo: null
